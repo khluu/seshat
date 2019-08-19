@@ -1,3 +1,12 @@
+This is a forked version of the SESHAT project.
+Check out the original README for most of the instructions on how to use it.
+Here are some additional tips for using the forked version:
+1. The default location for the boost library is /usr/include/boost. You can
+   change it in a -I flag in Makefile.
+2. Download the "nlohmann" folder from https://github.com/nlohmann/json and add
+   it to your cloned/downloaded "seshat" folder. This adds supports for JSON in C++.
+
+
 SESHAT: Handwritten math expression parser
 ==========================================
 *Seshat* is an open-source system for recognizing handwritten
