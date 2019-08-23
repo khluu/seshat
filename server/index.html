@@ -1,0 +1,207 @@
+<html>
+
+<head>
+  <meta charset="uft-8" />
+  <meta name="Title" content="Handwriting board" />
+  <meta name="Description" content="A demo of handwritten math recogntion with new features" />
+
+  <title>Handwriting board</title>
+  <style type="text/css">
+    #container {
+      position: relative;
+    }
+
+    #drawing-canvas {
+      border: 1px solid #000;
+    }
+
+    #cannew {
+      position: absolute;
+      top: 1px;
+      left: 1px;
+    }
+  </style>
+
+  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+  <script type="text/javascript" src="js/jsketch.min.js"></script>
+  <script type="text/javascript" src="js/jquery.sketchable.min.js"></script>
+  <script type="text/javascript" src="js/jquery.sketchable.memento.min.js"></script>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+</head>
+
+<body>
+  <div id="header">
+    <h1> Handwritten math recognition</h1>
+  </div>
+
+  <div id="main-wrapper">
+    <div id="main">
+      <div class="app eq">
+        <!--<label>Equation:</label>-->
+        <h2> Result: </h2>
+        <div class="result" id="eq-render"></div>
+        <!--<label>LaTeX code:</label>-->
+        <h2> LaTeX: </h2>
+        <div class="result" id="eq-latex"></div>
+        <h2> Parse tree: </h2>
+        <div class="result" id="parse-tree"></div>
+      </div><!-- app -->
+
+
+      <div class="app draw">
+        <canvas id="drawing-canvas" width="700" height="500"></canvas>
+        <div class="controls">
+          <button id="clear"> clear </button>
+          <button id="button"> send </button>
+          <button id="undo"> undo </button>
+          <button id="redo"> redo </button>
+          <button id="mode"> not divide mode</button>
+        </div>
+      </div><!-- app -->
+    </div>
+    <!--#main-->
+  </div>
+  <!--#main-wrapper-->
+
+  <script type="text/javascript" src="js/helper_funcs.js"></script>
+  <script type="text/javascript" src="js/analyze_strokes_boxes.js"></script>
+  <script type="text/javascript" src="js/analyze_symbols_boxes.js"></script>
+  <script type="text/javascript">
+    var clear = document.getElementById('clear');
+    var canvas = document.getElementById('drawing-canvas');
+    var button = document.getElementById('button');
+    var undo = document.getElementById('undo');
+    var redo = document.getElementById('redo');
+    var mode = document.getElementById('mode');
+
+    var render = document.getElementById('eq-render');
+    var latex = document.getElementById('eq-latex');
+    var tree = document.getElementById('parse-tree');
+
+    var $canvas = $('#drawing-canvas').sketchable({
+      graphics: {
+        strokesStyle: "red"
+      }
+    });
+
+    var not_divide_mode = true;
+    var bboxes = [];
+    var hlines = [];
+    var vlines = [];
+
+
+
+    undo.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('undo');
+    }
+    redo.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('redo');
+    }
+    clear.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('clear');
+      console.clear();
+      $('.result').empty();
+      bboxes = [];
+      hlines = [];
+      vlines = [];
+    }
+    mode.onclick = function (e) {
+      if (not_divide_mode) {
+        not_divide_mode = false;
+        mode.innerHTML = "divide mode";
+      } else {
+        not_divide_mode = true;
+        mode.innerHTML = "not divide mode";
+      }
+    }
+
+    function sendMsg(scg) {
+      $.ajax({
+        url: '/ajax',
+        async: true,
+        type: 'POST',
+        data: JSON.stringify(scg),
+        success: function (data) {
+          console.log("\nRequest resolved!");
+          data_obj = JSON.parse(data);
+
+          latex.innerHTML += data_obj['latex'] + "<br />";
+
+          var render_list = latex.innerHTML.split('<br>');
+          var render_string = '';
+          for (var i = 0; i < render_list.length - 1; i++) {
+            render_string += ('\\[' + render_list[i] + '\\]');
+          }
+          render.innerHTML += render_string;
+          MathJax.Hub.Typeset();
+
+          //console.log(JSON.stringify(data_obj['tree'], null, 2));
+          tree.innerHTML = 'See the result(s) in the console.';
+
+          // analyze the bboxes of the symbols
+          get_bboxes_from_symbols(data_obj['tree'], bboxes);
+          console.log("\nbboexes of the symbols: ")
+          console.log(bboxes);
+
+          hlines = [];
+          get_horizontal(bboxes, hlines, 0.5);
+          // sort hlines
+          for (var hline of hlines){
+            hline.sort(sort_box_by_X);
+          }
+          hlines.sort(sort_hlines);
+          console.log("HORIZONTAL: ");
+          print(hlines, bboxes);
+
+          vlines = [];
+          get_vertical(bboxes, hlines, vlines);
+          vlines.sort(sort_vlines);
+          console.log("VERTICAL: ");
+          print(vlines, bboxes);
+        },
+        error: function () {
+          console.log("Request not sent or not resolved.");
+        }
+      });
+    }
+
+    button.addEventListener('click', function () {
+
+      var strokes = $canvas.sketchable('strokes');
+      // filter out time and pressure information, only leave coordinate pairs
+      for (var i = 0; i < strokes.length; i++) {
+        for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
+          strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
+        }
+      }
+
+      if (not_divide_mode) {
+        var scg = strokesToScg(strokes);
+        sendMsg(scg);
+      } else {
+        var bboxes = get_bboxes_from_strokes(strokes);
+        var strokes_groups = [];
+
+        divideStrokes(bboxes, strokes_groups, 0.6, 0.7);
+        console.log('strokes groups (in indices): ');
+        console.log(JSON.stringify(strokes_groups))
+
+        for (var j = 0; j < strokes_groups.length; j++) {
+          var strokes_gj = []; // strokes group j
+          for (var box of strokes_groups[j]) {
+            strokes_gj.push(strokes[box]);
+          }
+          var scg_gj = strokesToScg(strokes_gj);
+          sendMsg(scg_gj);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
