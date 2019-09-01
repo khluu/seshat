@@ -1,0 +1,103 @@
+HOW TO COLLECT DATA AND RUN THE ALGORITHM(S) ON THE DATA:
+
+######################################### Strokes collection
+  In order to collect strokes data from users, go to the directory "collect" and run 
+$ python3 collect_data.py --port=[Number]. Then open localhost:[Number] in the browser.
+You can draw anything on the canvas. "Undo" and "redo" move back or forward 1 stroke
+at a time. "Clear" erases the canvas. Click "send" when you are done.
+  Every time a user sends a set of strokes to the server, a "set[index]" folder will
+be created in the "dataset" folder, and 2 files "picture.png" and "strokes.json" will
+be created in the "set[index] folder.
+
+"picture.png" is the graph of what the user drew.
+"strokes.json" contains a list of lists of (x,y) coordinate pairs. The structure is like
+[[pair, pair, etc], [pair, pair, etc], etc]. Each list of coordinate pairs constitutes a
+stroke. A list of these lists/strokes constitutes a mathematical expression. It's worth to
+mention that the coordinate pairs and the strokes are in chronological order.
+
+Each time a user sends something to the server, a counter in collect_data.py increments by 1.
+The counter is then used as the index of a "set[index]" folder. It'll revert back to 0 if the
+program in collect_data.py is restarted. In order to avoid creating a folder "set[index]" that
+already exists, the best practice is to let the program run nonstop until all data are collected.
+
+
+
+
+
+########################################## Strokes processing
+  After the strokes data have been collected, run
+  $ node/nodejs process_strokes.js FILEPATH [-divide]
+to convert them to .scgink files, and divide them into different lines if necessary. For 
+multi-column arithmetic problems, dividing the strokes is necessary. The command begins with 
+either node or nodejs, depending on whether you installed node.js from the official Ubuntu repository or njm.
+FILEPATH is the path to a strokes file, usually named "strokes.json". The last flag is optional, 
+depending on if you want to divide the strokes into lines. The default is to not divide.
+
+Examples:
+$ node process_strokes.js dataset/set0/strokes.json
+$ node process_strokes.js dataset/set1/strokes.json
+
+If not divide, an "input.scgink" file will be created in the "set[index]" folder, the same 
+folder "strokes.json" is in.
+If divide, a folder "line[index]" will be created for each line. In each "line[index]",
+there will be "strokes.json" and "input.scgink", which correspond to the strokes in the line 
+and the .scgink file of these strokes. The lines of strokes are shown in the terminal.
+Each list corresponds to a line, and each number is the chronological index of the stroke.
+
+
+
+
+
+########################################### Run seshat on .scgink files
+Go to the "seshat" folder.
+Usage:
+$ ./seshat
+-c config      set the configuration file, where you can change many things, such as symbol types
+-i input       set the input file
+[-o output]    save recognized expression in .InkML (optional)
+[-r render]    save input to an image in .pgm (optional)
+[-d graph]     save the recognized parse tree in .dot (recommended for testing)
+[-t tree]      save the recognized parse tree in .json (recommended for testing)
+-b bboxes      save the bounding boxes of all terminal symbols in bboxes.json (required for testing)
+
+If the strokes data in set[index] are divided, run seshat on the .scgink file in each set[index]/line[index] folder.
+If not, run seshat on the .scgink file in the set[index] folder.
+
+Examples:
+Let "dir = server/testing/dataset/set[index]" or "server/testing/dataset/set[index]/line[index]".
+Run $ ./seshat -c Config/CONFIG -i dir/input.scgink -o dir/out.inkml -r dir/out.pgm -d dir/out.dot -t dir/tree.json -b dir/bboxes.json
+You can either substitute "dir" with the path and run the command, or create a shell script to achieve the same goal.
+
+For testing purposes, I suggest using the following,
+./seshat -c Config/CONFIG -i dir/input.scgink -d dir/out.dot -t dir/tree.json -b dir/bboxes.json,
+since we don't need .inkml and .pgm outputs.
+
+Output:
+There is output in the terminal besides the files saved in "dir". Output content:
+Number of strokes: the number of strokes in the input
+Strokes bboxes:
+the bounding boxes of the strokes (X, Y are the top-left cornder coordinates)
+CYK table initialization:
+some confidence numbers for different hypotheses of the structure
+CYK parsing algorithm:
+(not sure what it means)
+Most likely hypothesis:
+indicates that the mostly likely hypothesis has been determined
+Math symbols:
+a list of terminal symbols, each with its class number and the set of strokes it consists of
+LaTeX:
+the latex expression
+
+
+############################## Analyze the bounding boxes of terminal symbols
+Run the process_symbols.js file to get the horizontal and vertical lines of the bounding boxes
+of terminal symbols in the mathematical expression.
+
+Usage: $ node process_symbols.js directory [parameter]
+The directory is a set[index] folder. The parameter is a number used in the algorithm. The default is 0.5.
+
+Examples:
+$ node process_symbols.js dataset/set0/
+$ node process_symbols.js dataset/set1/
+$ node process_strokes.js dataset/set0/ 0.6
+(make sure that there is a slash at the end of the directory)

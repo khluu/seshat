@@ -40,18 +40,20 @@ void usage(char *str) {
 
 int main(int argc, char *argv[]) {
 
-  char input[MAXS], output[MAXS], config[MAXS], render[MAXS], dot[MAXS];
-  bool rc=false,ri=false,ro=false,rr=false,rd=false;
+  char input[MAXS], output[MAXS], config[MAXS], render[MAXS], dot[MAXS], tree[MAXS], bboxes[MAXS];
+  bool rc=false,ri=false,ro=false,rr=false,rd=false,rt=false,rb=false;
   input[0] = output[0] = config[0] = 0;
 
   int option;
-  while ((option = getopt (argc, argv, "c:i:o:r:d:")) != -1)
+  while ((option = getopt (argc, argv, "c:i:o:r:d:t:b:")) != -1)
     switch (option) {  
     case 'c': strcpy(config, optarg); rc=true; break;
     case 'i': strcpy(input,  optarg); ri=true; break;
     case 'o': strcpy(output, optarg); ro=true; break;
     case 'r': strcpy(render, optarg); rr=true; break;
     case 'd': strcpy(dot,    optarg); rd=true; break;
+    case 't': strcpy(tree,   optarg); rt=true; break;
+    case 'b': strcpy(bboxes, optarg); rb=true; break;
     case '?': usage(argv[0]); return -1;
     }
   
@@ -69,14 +71,15 @@ int main(int argc, char *argv[]) {
   meParser seshat(config);
 
   //Render image to file
-  if( rr ) m.render_img(render);
-
+  if (rr) m.render_img(render);
   //Set output InkML file
-  if( ro ) m.set_out_inkml( output );
-
+  if (ro) m.set_out_inkml(output);
   //Set output DOT graph file
-  if( rd ) m.set_out_dot( dot );
-
+  if (rd) m.set_out_dot(dot);
+  //Set out parse tree JSON file
+  if (rt) m.set_out_tree(tree);
+  //Set out bounding boxes JSON file
+  if (rb) m.set_out_bboxes(bboxes);
   //Print sample information
   m.print();
   printf("\n");

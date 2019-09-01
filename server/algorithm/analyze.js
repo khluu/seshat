@@ -1,3 +1,75 @@
+module.exports = {
+  get_horizontal,
+  get_vertical,
+  divideStrokes,
+  get_bboxes_from_strokes,
+  strokesToScg,
+  print
+}
+
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function createArray(l) {
+  var array = new Array(l);
+  for (var i = 0; i < l; i++) {
+    array[i] = false;
+  }
+  //console.log(array);
+  return array;
+}
+
+function average(indices, bboxes, type) {
+  var sum = 0,
+    count = 0;
+  for (var index of indices) {
+    sum += bboxes[index]['bbox'][type];
+    count++;
+  }
+  return sum / count;
+}
+
+// run depth-first-search on the graph to get the connected componets
+// each connected component means one line of boxes
+function DFS(lines, matrix) {
+  var l = matrix.length;
+  var visited = createArray(l);
+
+  for (var start = 0; start < l; start++) {
+    if (!visited[start]) {
+      visited[start] = true;
+      var stack = [start];
+      var component = [start];
+      while (stack.length != 0) {
+        var top = stack.pop();
+        for (var j = 0; j < l; j++) {
+          if (matrix[top][j] && !visited[j]) {
+            stack.push(j);
+            component.push(j);
+            visited[j] = true;
+          }
+        }
+      }
+      lines.push(component);
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
 // get a list of bboxes from all the symbols in the parse tree
 // a symbol is any terminal digit/letter/operator,
 function get_bboxes_from_symbols(tree, bboxes) {
@@ -13,8 +85,8 @@ function DFS_vertical(hlines, lines, matrix) {
   var l = matrix.length;
   var visited = createArray(l);
 
-  for (var i = 0; i < hlines.length; i++){
-    for (var start of hlines[i]){
+  for (var i = 0; i < hlines.length; i++) {
+    for (var start of hlines[i]) {
       if (!visited[start]) {
         visited[start] = true;
         var stack = [start];
@@ -39,6 +111,17 @@ function DFS_vertical(hlines, lines, matrix) {
 function get_horizontal(bboxes, hlines, p0) {
   var l = bboxes.length;
   var connected = createArray(l);
+  
+  var sort_box_by_X = function (bbox1, bbox2) {
+    var midX1 = bboxes[bbox1]['bbox']['X'] + 1 / 2 * bboxes[bbox1]['bbox']['w'];
+    var midX2 = bboxes[bbox2]['bbox']['X'] + 1 / 2 * bboxes[bbox2]['bbox']['w'];
+    return midX1 < midX2 ? -1 : 1;
+  }
+  var sort_hlines = function (line1, line2) {
+    var ave1 = average(line1, bboxes, 'Y') + 1 / 2 * average(line1, bboxes, 'h');
+    var ave2 = average(line2, bboxes, 'Y') + 1 / 2 * average(line2, bboxes, 'h');
+    return ave1 < ave2 ? -1 : 1;
+  }
 
   for (var i = 0; i < l; i++) {
     connected[i] = createArray(l);
@@ -52,6 +135,10 @@ function get_horizontal(bboxes, hlines, p0) {
     }
   }
   DFS(hlines, connected);
+  for (var hline of hlines){
+    hline.sort(sort_box_by_X);
+  }
+  hlines.sort(sort_hlines);
 }
 
 
@@ -96,6 +183,11 @@ function get_vertical(bboxes, hlines, vlines) {
   var l = bboxes.length;
   var matrix = new Array(l);
   var matrix2 = new Array(l);
+  var sort_vlines = function (line1, line2) {
+    var ave1 = average(line1, bboxes, 'X') + 1 / 2 * average(line1, bboxes, 'w');
+    var ave2 = average(line2, bboxes, 'X') + 1 / 2 * average(line2, bboxes, 'w');
+    return ave1 < ave2 ? -1 : 1;
+  }
 
   // local functions
   var go_on = function (matches) {
@@ -196,6 +288,9 @@ function get_vertical(bboxes, hlines, vlines) {
 
   //console.log('\nRunning DFS: ')
   DFS_vertical(hlines, vlines, matrix2);
+
+  // sort the vertical lines
+  vlines.sort(sort_vlines);
 }
 
 // get the maximum 2 numbers from a list of nonnegative numbers
@@ -282,14 +377,6 @@ function get_column(matrix, j) {
   return result;
 }
 
-// create an array of length l, filled with false
-function create_array(l) {
-  var array = new Array(l);
-  for (var i = 0; i < l; i++) {
-    array[i] = false;
-  }
-  return array;
-}
 
 // delete superfluous (some are incorrect) edges in the graph of connected nodes
 function delete_edges(hlines, matrix) {
@@ -347,7 +434,7 @@ function delete_edges(hlines, matrix) {
 
 // print the list of horizontal/vertial lines according to the actual numbers
 // instead of their indices in the lists of all bounding boxes
-function print(lines, boxes) {
+function print(lines, bboxes) {
   for (var line of lines) {
     var string = '';
     for (var bbox of line) {
@@ -359,4 +446,140 @@ function print(lines, boxes) {
     }
     console.log(string);
   }
+}
+
+
+
+
+
+
+function strokesToScg(strokes) {
+  var scg = 'SCG_INK\n' + strokes.length + '\n';
+  strokes.forEach(function (stroke) {
+    scg += stroke.length + '\n';
+    stroke.forEach(function (p) {
+      scg += p[0] + ' ' + p[1] + '\n';
+    })
+  })
+  return scg;
+}
+
+
+// get the list of bboxes from the strokes data
+// each stroke is a list of coordinate pairs
+function get_bboxes_from_strokes(strokes) {
+  var boxes = [];
+  for (var i = 0; i < strokes.length; i++) {
+    var stroke = strokes[i];
+    var minx = Infinity,
+      maxx = -Infinity;
+    var miny = Infinity,
+      maxy = -Infinity;
+    for (var point of stroke) {
+      if (point[0] < minx) {
+        minx = point[0];
+      }
+      if (point[0] > maxx) {
+        maxx = point[0];
+      }
+      if (point[1] < miny) {
+        miny = point[1];
+      }
+      if (point[1] > maxy) {
+        maxy = point[1];
+      }
+    }
+    boxes.push({
+      'bbox': {
+        'X': minx,
+        'Y': miny,
+        'w': maxx - minx,
+        'h': maxy - miny
+      }
+    });
+  }
+  return boxes;
+}
+
+// find how overlapped are box c1 and box c2, in X coordinates or Y coordinates
+// the measure is defined in the documentation
+function overlap(boxes, c1, c2, type) {
+  var type2;
+  if (type == 'X') {
+    type2 = 'w';
+  } else if (type == 'Y') {
+    type2 = 'h';
+  }
+  var box1 = boxes[c1]['bbox'],
+    box2 = boxes[c2]['bbox'];
+  var a = box1[type],
+    b = box1[type] + box1[type2];
+  var c = box2[type],
+    d = box2[type] + box2[type2];
+  var h_sum = box1[type2] + box2[type2];
+
+  if (b < c) {
+    return (c - b) / (c - b + h_sum) - 1;
+  } else if (d < a) {
+    return (a - d) / (a - d + h_sum) - 1;
+  }
+  var diff = Math.min(b, d) - Math.max(a, c);
+  if (b - a == 0 || d - c == 0) {
+    return 1;
+  }
+  return Math.max(diff / ((b - a) == 0 ? 1 : (b - a)), diff / ((d - c) == 0 ? 1 : (d - c)));
+}
+
+// check if box c is special
+// in multi-column arithmetic problems, the special ones are the long lines
+function checkSpecial(boxes, c) {
+  if (boxes[c]['bbox']['w'] / boxes[c]['bbox']['h'] > 5) {
+    return 'long';
+  }
+  return 'normal';
+}
+
+// compute how much the minimal bbox enclosing box c1 and c2 "grows" vertically from c1
+// if it doesn't "grow", return -1
+function remainPercentage(boxes, c1, c2) {
+  var box1 = boxes[c1]['bbox'];
+  var box2 = boxes[c2]['bbox'];
+  var a = box1['Y'];
+  var b = box1['Y'] + box1['h'];
+  var c = box2['Y'];
+  var d = box2['Y'] + box2['h'];
+  var height = Math.max(b, d) - Math.min(a, c);
+  if (a < c) {
+    return -1;
+  }
+  return (b - a) / height;
+}
+
+// the main method used to divide the strokes in a multi-column arithmetic problem into different lines
+function divideStrokes(boxes, hlines, p0, p1) {
+  var l = boxes.length;
+  var connected = createArray(l);
+
+  for (var i = 0; i < l; i++) {
+    connected[i] = createArray(l);
+  }
+  for (var i = 0; i < l; i++) {
+    /*if (checkSpecial(boxes, i) == 'long') {
+      hlines.push([i]);
+      continue;
+    }*/
+    for (var j = i + 1; j < l; j++) {
+      var vert_lap = overlap(boxes, i, j, 'Y');
+      var rate1 = remainPercentage(boxes, i, j);
+      var rate2 = remainPercentage(boxes, j, i);
+      //console.log('Between ', i, 'and ', j);
+      //console.log(vert_lap);
+      //console.log(Math.max(rate1, rate2));
+      if (vert_lap > p0 || rate1 > p1 || rate2 > p1) {
+        connected[i][j] = true;
+      }
+    }
+  }
+  //console.log(connected);
+  DFS(hlines, connected);
 }

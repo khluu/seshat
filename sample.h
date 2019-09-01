@@ -56,7 +56,7 @@ class Sample{
   SymRec *SR;
 
   //Information to create the output InkML file
-  char *outinkml, *outdot;
+  char *outinkml, *outdot, *outtree, *outbboxes;
   string UItag;
   int next_id;
 
@@ -109,7 +109,11 @@ public:
   void render_img(char *out);
   void set_out_inkml(char *out);
   void set_out_dot(char *out);
+  void set_out_tree(char *out);
+  void set_out_bboxes(char *out);
   char *getOutDot();
+  char *getOutTree();
+  char *getOutBboxes();
 
   void print();
   void printInkML(Grammar *G, Hypothesis *H);

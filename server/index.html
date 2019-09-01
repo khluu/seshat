@@ -22,10 +22,10 @@
     }
   </style>
 
-  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
-  <script type="text/javascript" src="js/jsketch.min.js"></script>
-  <script type="text/javascript" src="js/jquery.sketchable.min.js"></script>
-  <script type="text/javascript" src="js/jquery.sketchable.memento.min.js"></script>
+  <script type="text/javascript" src="libraries/jquery-3.4.1.min.js"></script>
+  <script type="text/javascript" src="libraries/jsketch.min.js"></script>
+  <script type="text/javascript" src="libraries/jquery.sketchable.min.js"></script>
+  <script type="text/javascript" src="libraries/jquery.sketchable.memento.min.js"></script>
   <script type="text/javascript" async
     src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
   </script>
@@ -65,9 +65,7 @@
   </div>
   <!--#main-wrapper-->
 
-  <script type="text/javascript" src="js/helper_funcs.js"></script>
-  <script type="text/javascript" src="js/analyze_strokes_boxes.js"></script>
-  <script type="text/javascript" src="js/analyze_symbols_boxes.js"></script>
+  <script type="text/javascript" src="algorithm/analyze.min.js"></script>
   <script type="text/javascript">
     var clear = document.getElementById('clear');
     var canvas = document.getElementById('drawing-canvas');
@@ -145,22 +143,16 @@
 
           // analyze the bboxes of the symbols
           get_bboxes_from_symbols(data_obj['tree'], bboxes);
-          console.log("\nbboexes of the symbols: ")
+          console.log("\nbboxes of the symbols: ")
           console.log(bboxes);
 
           hlines = [];
           get_horizontal(bboxes, hlines, 0.5);
-          // sort hlines
-          for (var hline of hlines){
-            hline.sort(sort_box_by_X);
-          }
-          hlines.sort(sort_hlines);
           console.log("HORIZONTAL: ");
           print(hlines, bboxes);
 
           vlines = [];
           get_vertical(bboxes, hlines, vlines);
-          vlines.sort(sort_vlines);
           console.log("VERTICAL: ");
           print(vlines, bboxes);
         },
@@ -189,7 +181,7 @@
 
         divideStrokes(bboxes, strokes_groups, 0.6, 0.7);
         console.log('strokes groups (in indices): ');
-        console.log(JSON.stringify(strokes_groups))
+        console.log(JSON.stringify(strokes_groups));
 
         for (var j = 0; j < strokes_groups.length; j++) {
           var strokes_gj = []; // strokes group j

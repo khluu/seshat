@@ -1,0 +1,110 @@
+<html>
+
+<head>
+  <meta charset="uft-8" />
+  <meta name="Title" content="Collect strokes data" />
+
+  <title>Handwriting board</title>
+  <style type="text/css">
+    #container {
+      position: relative;
+    }
+
+    #drawing-canvas {
+      border: 1px solid #000;
+    }
+
+    #cannew {
+      position: absolute;
+      top: 1px;
+      left: 1px;
+    }
+  </style>
+
+  <script type="text/javascript" src="libraries/jquery-3.4.1.min.js"></script>
+  <script type="text/javascript" src="libraries/jsketch.min.js"></script>
+  <script type="text/javascript" src="libraries/jquery.sketchable.min.js"></script>
+  <script type="text/javascript" src="libraries/jquery.sketchable.memento.min.js"></script>
+  </script>
+</head>
+
+<body>
+  <div id="header">
+    <h1> Strokes data collection</h1>
+  </div>
+
+  <div id="main-wrapper">
+    <div id="main">
+      <div class="app draw">
+        <canvas id="drawing-canvas" width="700" height="500"></canvas>
+        <div class="controls">
+          <button id="clear"> clear </button>
+          <button id="button"> send </button>
+          <button id="undo"> undo </button>
+          <button id="redo"> redo </button>
+        </div>
+      </div><!-- app -->
+    </div>
+    <!--#main-->
+  </div>
+  <!--#main-wrapper-->
+
+  <script type="text/javascript">
+    var clear = document.getElementById('clear');
+    var canvas = document.getElementById('drawing-canvas');
+    var button = document.getElementById('button');
+    var undo = document.getElementById('undo');
+    var redo = document.getElementById('redo');
+
+    var $canvas = $('#drawing-canvas').sketchable({
+      graphics: {
+        strokesStyle: "red"
+      }
+    });
+
+    undo.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('undo');
+    }
+    redo.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('redo');
+    }
+    clear.onclick = function (e) {
+      e.preventDefault();
+      $canvas.sketchable('clear');
+      console.clear();
+      $('.result').empty();
+    }
+
+    function sendMsg(strokes) {
+      console.log(strokes);
+      $.ajax({
+        url: '/ajax',
+        async: true,
+        type: 'POST',
+        data: JSON.stringify(strokes),
+        success: function (data) {
+          console.log("\nThe following strokes data are sent: ");
+          console.log(strokes);
+        },
+        error: function () {
+          console.log("Request not sent or not resolved.");
+        }
+      });
+    }
+
+    button.addEventListener('click', function () {
+      var strokes = $canvas.sketchable('strokes');
+      // filter out time and pressure information, only leave coordinate pairs
+      for (var i = 0; i < strokes.length; i++) {
+        for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
+          strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
+        }
+      }
+      sendMsg(strokes);
+    });
+  </script>
+</body>
+
+</html>

@@ -933,9 +933,18 @@ void meParser::parse_me(Sample *M) {
 
   //Save InkML file of the recognized expression
   M->printInkML( G, mlh );
-
   if( M->getOutDot() )
     save_dot( mlh, M->getOutDot() );
+  int index = 0;
+  json j = get_json(mlh, &index);
+  j = add_boxes(j, M);
+
+  if (M->getOutTree()){
+    save_tree(mlh, M, M->getOutTree());
+  }
+  if (M->getOutBboxes()){
+    save_bboxes(j, M->getOutBboxes());
+  }
 }
 
 /*************************************
@@ -955,7 +964,7 @@ void meParser::print_symrec(Hypothesis *H) {
     printf("%s {", clatex.c_str());
     // nc is the number of strokes
     for(int i=0; i < H->parent->nc; i++){
-      if( H->parent->ccc[i] ){
+      if( H->parent->ccc[i]) {
         printf(" %d", i);
       }
     }
@@ -987,38 +996,68 @@ void meParser::show_strokes(Sample *M){
 // get the json representation of the parse tree
 void meParser::print_json(Hypothesis *H, Sample *M){
   int index = 0;
-  json j = save_json(H, &index);
+  json j = get_json(H, &index);
   j = add_boxes(j, M);
   string parse_tree = j.dump();
-  //printf("%s", parse_tree.c_str());
-  std::cout << std::setw(2) << j << std::endl;
+  printf("%s\n", parse_tree.c_str());
+  //std::cout << std::setw(2) << j << std::endl;
 }
 
-json meParser::save_json(Hypothesis *H, int *index){
+void meParser::get_bboxes(json tree, vector<json> *bboxes){
+  if (tree["type"] == "symbol"){
+    (*bboxes).push_back(tree);
+  } else {
+    get_bboxes(tree["lchild"], bboxes);
+    get_bboxes(tree["rchild"], bboxes);
+  }
+}
+
+void meParser::save_bboxes(json j, char *outfile){
+  vector<json> bboxes;
+  get_bboxes(j, &bboxes);
+  std::ofstream out(outfile);
+
+  json temp;
+  temp["bboxes"] = bboxes;
+  out << temp;
+  out.close();
+}
+
+void meParser::save_tree(Hypothesis *H, Sample *M, char *outfile){
+  int index = 0;
+  json j = get_json(H, &index);
+  j = add_boxes(j, M);
+  //string parse_tree = j.dump();
+  std::ofstream out(outfile);
+  out << std::setw(2) << j;
+  out.close();
+}
+
+json meParser::get_json(Hypothesis *H, int *index){
   json j;
 
   if (!H->pt){
     int a = H->prod->A;
     int b = H->prod->B;
 
-    j["0type"] = "relation";
-    j["1index"] = *index;
-    j["2id"] = G->key2str(H->ntid);
+    j["type"] = "relation";
+    j["index"] = *index;
+    j["id"] = G->key2str(H->ntid);
     *index += 1;
     string s;
     s = (char) H->prod->tipo();
-    j["3label"] = s;
+    j["label"] = s;
 
-    j["5lchild"] = save_json(H->hi, index);
-    j["6rchild"] = save_json(H->hd, index);
+    j["lchild"] = get_json(H->hi, index);
+    j["rchild"] = get_json(H->hd, index);
 
   } else {
-    j["0type"] = "symbol";
-    j["1index"] = *index;
-    j["2id"] = G->key2str(H->pt->getNoTerm());
+    j["type"] = "symbol";
+    j["index"] = *index;
+    j["id"] = G->key2str(H->pt->getNoTerm());
     *index += 1;
     string aux = H->pt->getTeX(H->clase);
-    j["3label"] = aux.c_str();
+    j["label"] = aux.c_str();
 
     vector<int> strokes;
     for(int i=0; i < H->parent->nc; i++){
@@ -1026,18 +1065,18 @@ json meParser::save_json(Hypothesis *H, int *index){
         strokes.push_back(i);
       }
     }
-    j["7strokes"] = strokes;
+    j["strokes"] = strokes;
   }
   return j;
 }
 
 json meParser::add_boxes(json j, Sample *M){
-  if (j.count("4bbox")){
+  if (j.count("bbox")){
     return j;
   } else {
     int rx, ry, rs, rt;
-    if (j["0type"] == "symbol"){
-      vector<int> strokes = j["7strokes"];
+    if (j["type"] == "symbol"){
+      vector<int> strokes = j["strokes"];
       Stroke* stroke1 = M->getStroke(strokes[0]);
       rx = stroke1->rx;
       ry = stroke1->ry;
@@ -1060,17 +1099,17 @@ json meParser::add_boxes(json j, Sample *M){
       }
       json bbox;
       bbox["X"] = rx; bbox["Y"] = ry; bbox["w"] = rs-rx; bbox["h"] = rt-ry;
-      j["4bbox"] = bbox;
+      j["bbox"] = bbox;
 
       return j;
     } else {
-      json lchild = add_boxes(j["5lchild"], M);
-      json rchild = add_boxes(j["6rchild"], M);
-      j["5lchild"] = lchild;
-      j["6rchild"] = rchild;
+      json lchild = add_boxes(j["lchild"], M);
+      json rchild = add_boxes(j["rchild"], M);
+      j["lchild"] = lchild;
+      j["rchild"] = rchild;
 
-      json bbox1 = lchild["4bbox"];
-      json bbox2 = rchild["4bbox"];
+      json bbox1 = lchild["bbox"];
+      json bbox2 = rchild["bbox"];
       int X1 = bbox1["X"], X2 = bbox2["X"];
       int Y1 = bbox1["Y"], Y2 = bbox2["Y"];
       int w1 = bbox1["w"], w2 = bbox2["w"];
@@ -1082,7 +1121,7 @@ json meParser::add_boxes(json j, Sample *M){
 
       json bbox;
       bbox["X"] = rx; bbox["Y"] = ry; bbox["w"] = rs-rx; bbox["h"] = rt-ry;
-      j["4bbox"] = bbox;
+      j["bbox"] = bbox;
 
       return j;
     }

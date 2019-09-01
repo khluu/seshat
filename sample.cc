@@ -377,10 +377,27 @@ void Sample::set_out_dot(char *out) {
   strcpy(outdot, out);
 }
 
+void Sample::set_out_tree(char *out){
+  outtree = new char[strlen(out)+1];
+  strcpy(outtree, out);
+}
+
+void Sample::set_out_bboxes(char *out){
+  outbboxes = new char[strlen(out)+1];
+  strcpy(outbboxes, out);
+}
+
 char *Sample::getOutDot() {
   return outdot;
 }
 
+char *Sample::getOutTree(){
+  return outtree;
+}
+
+char *Sample::getOutBboxes(){
+  return outbboxes;
+}
 
 void Sample::detRefSymbol() {
   vector<int> vmedx, vmedy;

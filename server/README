@@ -1,0 +1,69 @@
+RUNNING A DEMO:
+To run a demo of handwritten math recognition using seshat, run
+$ python3 runserver.py --port=[Number],
+and open localhost:[Number] in the browser.
+The interface should be very self-explanatory.
+
+
+
+
+
+HOW THE FRONTEND AND BACKEND INTERACT:
+The user first writes something on the canvas in the interface,
+and once he clicks "send", the strokes data that were kept track of 
+will be converted to .scgink format and sent to the server in a 
+POST request using Ajax.
+The server parses the data and runs the seshat executable on the data
+in a new subprocess. The parse tree is available in JSON format in stdout.
+It is then intercept and sent back to the client. The client will update the page
+using the parse tree data.
+
+
+
+
+
+ROLES OF SOME FOLDERS AND FILES:
+
+"algorithm/":
+This folder contains the core algorithm files.
+"analyze.js" is a module that is imported in various other files in the "testing" folder.
+"analyze.min.js" is a minified version of "analyze.js", except that the module.exports part
+of "analyze.js" is excluded. It is used in production in index.html.
+
+
+"libraries/":
+This folder contains JS packages that enable drawing on HTML canvas and keeping track of 
+strokes data. It also contains JQuery.
+
+
+"testing/":
+This folder contains files that enable collecting data from users and analyzing them.
+See the README in it for details.
+
+
+"input.scgink":
+This file contains the set of strokes the user last drew. It is fed into seshat.
+
+
+"testing/interactive.html":
+This file is an interface for testing 2 algorithms interactively:
+1. an algorithm that gets the horitontal and vertical lines from the bounding boxes of terminal symbols
+2. an algorithm that divides a set of strokes into lines
+Open localhost:[Number]/testing/interactive.html in the browser to use it.
+The interface should be very self-explanatory.
+
+
+"testing/dataset/sample_data/":
+This folder contains a dataset of 17 multi-column arithmetic problems generated from 
+MyScript interface.
+"strokes.json" has the strokes.
+"symbols.json" has the terminals symbols information and their bounding boxes.
+"strokes_truth.json" is the ground-truth division of strokes into lines.
+"symbol_truth.json" is the ground-truth horizontal and vertical lines.
+"process_symbols.js"
+
+Run
+$ node process_symbols.js symbols.json [parameter]
+to get the horizontal and vertical lines.
+Due to the way these data are organized, only the "process_symbols.js" in this folder works.
+The file with the same name in the "testing" folder DOES NOT work.

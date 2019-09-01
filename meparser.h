@@ -72,9 +72,12 @@ class meParser{
   void save_dot( Hypothesis *H, char *outfile );
 
   void print_json(Hypothesis *H, Sample *M);
-  json save_json(Hypothesis *H, int *index);
+  json get_json(Hypothesis *H, int *index);
   void show_strokes(Sample *M);
   json add_boxes(json j, Sample *M);
+  void save_tree(Hypothesis *H, Sample *M, char *outfile);
+  void get_bboxes(json tree, vector<json> *bboxes);
+  void save_bboxes(json j, char *outfile);
 };
 
 #endif
