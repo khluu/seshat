@@ -90,7 +90,7 @@ the latex expression
 
 
 ############################## Analyze the bounding boxes of terminal symbols
-Run the process_symbols.js file to get the horizontal and vertical lines of the bounding boxes
+Run the process_symbols.js file to get the rows and columns of the bounding boxes
 of terminal symbols in the mathematical expression.
 
 Usage: $ node process_symbols.js directory [parameter]

@@ -1,0 +1,21 @@
+symbol = 0 1 2 3 4 5 6 7 8 9 + - / ÷ = . , % | ( ) : * x y z
+leftpar = (
+rightpar = )
+
+character ::= identity(symbol)
+
+fractionless ::= identity(character)
+               | fence (fractionless, leftpar, rightpar)
+               | hpair(fractionless, fractionless)
+               | vlist(fractionless)
+fractionable ::= identity(character)
+               | fence (fractionable, leftpar, rightpar)
+               | hpair(fractionable, fractionable)
+               | fraction(fractionless, fractionless)
+               | vlist(fractionable)
+expression ::= identity(character)
+             | fence (expression, leftpar, rightpar)
+             | hpair(expression, expression)
+             | fraction(fractionable, fractionable)
+             | vlist(fractionable)
+start(expression)

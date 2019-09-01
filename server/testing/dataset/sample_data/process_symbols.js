@@ -24,11 +24,11 @@ function analyze_symbols(bboxes_all) {
     let hlines = [];
     let vlines = [];
 
-    console.log("HORIZONTAL: ");
+    console.log("Rows: ");
     tools.get_horizontal(bboxes, hlines, p);
     tools.print(hlines, bboxes);
 
-    console.log("VERTICAL: ");
+    console.log("Columns: ");
     tools.get_vertical(bboxes, hlines, vlines);
     tools.print(vlines, bboxes);
     result[i] = {

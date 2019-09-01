@@ -42,12 +42,12 @@ function analyze_symbols(bboxes) {
   let hlines = [];
   let vlines = [];
 
-  console.log("HORIZONTAL: ");
+  console.log("Rows: ");
   //console.log(bboxes);
   tools.get_horizontal(bboxes, hlines, p);
   tools.print(hlines, bboxes);
 
-  console.log("VERTICAL: ");
+  console.log("Columns: ");
   tools.get_vertical(bboxes, hlines, vlines);
   tools.print(vlines, bboxes);
   result = {

@@ -47,7 +47,7 @@ This file contains the set of strokes the user last drew. It is fed into seshat.
 
 "testing/interactive.html":
 This file is an interface for testing 2 algorithms interactively:
-1. an algorithm that gets the horitontal and vertical lines from the bounding boxes of terminal symbols
+1. an algorithm that gets the rows and columns from the bounding boxes of terminal symbols
 2. an algorithm that divides a set of strokes into lines
 Open localhost:[Number]/testing/interactive.html in the browser to use it.
 The interface should be very self-explanatory.
@@ -59,11 +59,11 @@ MyScript interface.
 "strokes.json" has the strokes.
 "symbols.json" has the terminals symbols information and their bounding boxes.
 "strokes_truth.json" is the ground-truth division of strokes into lines.
-"symbol_truth.json" is the ground-truth horizontal and vertical lines.
+"symbol_truth.json" is the ground-truth rows and columns of the bounding boxes of terminal symbols.
 "process_symbols.js"
 
 Run
 $ node process_symbols.js symbols.json [parameter]
-to get the horizontal and vertical lines.
+to get the rows and columns.
 Due to the way these data are organized, only the "process_symbols.js" in this folder works.
 The file with the same name in the "testing" folder DOES NOT work.

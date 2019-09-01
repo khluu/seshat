@@ -3,8 +3,6 @@ Check out the original README for most of the instructions on how to use it.
 Here are some additional tips for using the forked version:
 1. The default location for the boost library is /usr/include/boost. You can
    change it in a -I flag in Makefile.
-2. Download the "nlohmann" folder from https://github.com/nlohmann/json and add
-   it to your cloned/downloaded "seshat" folder. This adds supports for JSON in C++.
 
 
 SESHAT: Handwritten math expression parser
@@ -99,20 +97,25 @@ Example of usage
 Run *seshat* without arguments and it will display the command-line interface:
 
 ```
-$ Usage: ./seshat -c config -i input [-o output] [-r render.pgm]
+$ Usage: ./seshat -c config -i input [-o output] [-r render.pgm] [-d out.dot] [-t tree.json] [-b bboxes.json]
 
   -c config: set the configuration file
   -i input:  set the input math expression file
   -o output: save recognized expression to 'output' file (InkML format)
   -r render: save in 'render' the image representing the input expression (PGM format)
   -d graph:  save in 'graph' the description of the recognized tree (DOT format)
+  -t tree: save the parse tree in json
+  -b bboxes: save the bounding boxes of terminal symbols in json
 ```
 
-There are two example math expressions in folder "SampleMathExps". The
+There are several math expressions in folder "SampleMathExps". The
 following command will recognize the expression `(x+y)^2` encoded in
 "exp.scgink"
 
 	$ ./seshat -c Config/CONFIG -i SampleMathExps/exp.scgink -o out.inkml -r render.pgm -d out.dot
+Other examples:
+   $ ./seshat -c Config/CONFIG -i SampleMathExps/input0.scgink -o out.inkml -r render.pgm -d out.dot -t tree.json -b bboxes.json
+   $ ./seshat -c Config/CONFIG -i SampleMathExps/input0.scgink -r render.pgm -d out.dot -t -b bboxes.json
 
 This command outputs several information through the standard output, where the last line will
 provide the LaTeX string of the recognized math expression. Furthermore:
