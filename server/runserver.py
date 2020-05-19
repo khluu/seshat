@@ -6,6 +6,9 @@ import os.path
 import shlex
 import subprocess
 import json
+import os
+
+# os.chdir(os.path.dirname(__file__))
 
 PORT = 8000
 define("port", default=PORT, help="run on the given port", type=int)
@@ -39,14 +42,19 @@ class AjaxHandler(tornado.web.RequestHandler):
         # The scg data is in the file, but seshat can't read anything from it.
         # Using Python I/O to read from the file failes too.
         # Instead, write the data to a file line by line. This will work.
-        with open(file_name, "a", encoding="utf-8") as fo:
+        import time
+        write_start = time.time()
+        with open(file_name, "w", encoding="utf-8") as fo:
             for l in lines:
                 fo.write(l+"\n")
 
         path = "./seshat -c Config/CONFIG -i server/input.scgink"
         args = shlex.split(path)
         p1 = subprocess.Popen(args, stdout=subprocess.PIPE, cwd="../")
+
+        print("write & start elapse: ", time.time()-write_start) 
         output = p1.communicate()[0].decode()
+        print(output)
 
         # get the parse tree, latex output
         tree = output.split('JSON:\n')[-1]

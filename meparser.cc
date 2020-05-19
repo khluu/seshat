@@ -16,6 +16,9 @@
     along with SESHAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "meparser.h"
+#include <chrono> 
+
+using namespace std::chrono;
 
 using json = nlohmann::json;
 //Symbol classifier N-Best
@@ -501,7 +504,7 @@ CellCYK *meParser::fusion(Sample *M, ProductionB *pd, Hypothesis *A, Hypothesis 
 Parse Math Expression
 **************************************/
 void meParser::parse_me(Sample *M) {
-
+  auto chrono1 = high_resolution_clock::now(); 
   M->setSymRec( sym_rec );
 
   //Compute the normalized size of a symbol for sample M
@@ -510,14 +513,22 @@ void meParser::parse_me(Sample *M) {
   int N = M->nStrokes();
   int K = G->noTerminales.size();
 
+  
+
   //Cocke-Younger-Kasami (CYK) algorithm for 2D-SCFG
   TableCYK tcyk( N, K );
 
   printf("CYK table initialization:\n");
   initCYKterms(M, &tcyk, N, K);
 
+  auto chrono2 = high_resolution_clock::now(); 
+  printf("---Time Init %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono2 - chrono1).count());
+
   //Compute distances and visibility among strokes
   M->compute_strokes_distances(M->RX, M->RY);
+
+  auto chrono3_ = high_resolution_clock::now(); 
+  printf("---Time stroke_distances %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono3_ - chrono2).count());
 
   //Spatial structure for retrieving hypotheses within a certain region
   LogSpace **logspace = new LogSpace*[N];
@@ -527,11 +538,17 @@ void meParser::parse_me(Sample *M) {
   //Init spatial space for size 1
   logspace[1] = new LogSpace(tcyk.get(1), tcyk.size(1), M->RX, M->RY);
 
+  auto chrono3 = high_resolution_clock::now(); 
+  printf("---Time SPR %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono3 - chrono3_).count());
+
   //Init the parsing table with several multi-stroke symbol segmentation hypotheses
   combineStrokes(M, &tcyk, logspace, N);
   
   printf("\nCYK parsing algorithm\n");
   printf("Size 1: Generated %d\n", tcyk.size(1));
+
+  auto chrono4 = high_resolution_clock::now(); 
+  printf("---Time combine strokes %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono4 - chrono3).count());
   
   //CYK algorithm main loop
   for(int talla=2; talla<=N; talla++) {
@@ -903,14 +920,22 @@ void meParser::parse_me(Sample *M) {
 
   } //for 2 <= talla <= N
 
+auto chrono5 = high_resolution_clock::now(); 
+printf("---Time CKY %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono5 - chrono4).count());
 
   //Free memory
   for(int i=1; i<N; i++)
     delete logspace[i];
   delete[] logspace;
 
+auto chrono6 = high_resolution_clock::now(); 
+printf("---Time clean %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono6 - chrono5).count());
+
   //Get Most Likely Hypothesis
   Hypothesis *mlh = tcyk.getMLH();
+
+auto chrono7 = high_resolution_clock::now(); 
+printf("---Time get_most_likely %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono7 - chrono6).count());
 
   if( !mlh ) {
     fprintf(stderr, "\nNo hypothesis found!!\n");
@@ -919,17 +944,7 @@ void meParser::parse_me(Sample *M) {
 
   printf("\nMost Likely Hypothesis (%d strokes)\n\n", mlh->parent->talla);
 
-  printf("Math Symbols:\n");
-  print_symrec(mlh);
-  printf("\n");
-
-  printf("LaTeX:\n");
-  print_latex( mlh );
-  printf("\n");
-
-  printf("JSON:\n");
-
-  print_json(mlh, M);
+  
 
   //Save InkML file of the recognized expression
   M->printInkML( G, mlh );
@@ -945,7 +960,22 @@ void meParser::parse_me(Sample *M) {
   if (M->getOutBboxes()){
     save_bboxes(j, M->getOutBboxes());
   }
+  auto chrono8 = high_resolution_clock::now(); 
+  printf("---Time Write Outputs %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono8 - chrono7).count());
+
+  printf("Math Symbols:\n");
+  print_symrec(mlh);
+  printf("\n");
+
+  printf("LaTeX:\n");
+  print_latex( mlh );
+  printf("\n");
+
+  printf("JSON:\n");
+
+  print_json(mlh, M);
 }
+
 
 /*************************************
 End Parsing Math Expression

@@ -79,6 +79,8 @@ sgt
 si
 slt
 ta
+NRow
+HLineTerm
 
 START
 Term
@@ -87,6 +89,7 @@ UnTerm
 TermSub
 TermSup
 TermSSE
+NRow
 
 PTERM
 0.05751515 Digit 0 0
@@ -293,6 +296,12 @@ PTERM
 1.00000000 Dot dot .
 
 PBIN
+1.00000000 V NRow Term NRow "$1\\$2" B
+1.00000000 V NRow HLineTerm NRow "$1\\$2" B
+1.00000000 V NRow Term Term "$1\\$2" B
+1.00000000 V NRow Term HLineTerm  "$1\\$2" B
+1.00000000 V NRow HLineTerm Term  "$1\\$2" B
+1.00000000 V HLineTerm Term hline "\underline{$1}" B
 0.06462269 H Term Term OpTerm "$1 $2" M
 0.00365840 H Term TermSSE OpTerm "$1 $2" M
 0.02792945 H Term TermSub OpTerm "$1 $2" M

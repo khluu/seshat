@@ -235,6 +235,11 @@ int SymRec::symType(int k) {
  * Classify *
  ************/
 
+void SymRec::classify_simple(Sample *M, const int n_classes, int *classes_out, float *probs_out){
+  
+
+}
+
 int SymRec::clasificar(Sample *M, int ncomp, const int NB, int *vclase, float *vpr, int *as, int *ds) {
   list<int> aux;
   aux.push_back( ncomp );

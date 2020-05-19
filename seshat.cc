@@ -21,7 +21,10 @@
 #include "grammar.h"
 #include "sample.h"
 #include "meparser.h"
+#include <chrono> 
 
+
+using namespace std::chrono;
 
 #define MAXS 4096
 
@@ -66,9 +69,13 @@ int main(int argc, char *argv[]) {
   //Because some of the feature extraction code uses std::cout/cin
   ios_base::sync_with_stdio(true);
 
+  auto chrono1 = high_resolution_clock::now(); 
   //Load sample and system configuration
   Sample m( input );
   meParser seshat(config);
+
+  auto chrono2 = high_resolution_clock::now(); 
+  printf("---Time Load Input/Config %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono2 - chrono1).count());
 
   //Render image to file
   if (rr) m.render_img(render);
