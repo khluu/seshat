@@ -8,8 +8,9 @@ import subprocess
 import json
 import os
 
-# os.chdir(os.path.dirname(__file__))
-
+d = os.path.dirname(__file__)
+os.chdir(os.path.abspath(os.path.join(d,"../")))
+print(os.getcwd())
 PORT = 8000
 define("port", default=PORT, help="run on the given port", type=int)
 
@@ -17,12 +18,12 @@ define("port", default=PORT, help="run on the given port", type=int)
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         # main page set up
-        self.render("index.html", messages=None)
+        self.render("server/index.html", messages=None)
 
 
 class interactiveHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("testing/interactive.html", messages=None)
+        self.render("server/testing/interactive.html", messages=None)
 
 
 class AjaxHandler(tornado.web.RequestHandler):
@@ -32,7 +33,7 @@ class AjaxHandler(tornado.web.RequestHandler):
         self.finish()
 
     def post(self, *args):
-        file_name = "input.scgink"
+        file_name = "server/input.scgink"
         scg = tornado.escape.json_decode(self.request.body)
         lines = scg.split("\n")
         # print(lines)
@@ -44,13 +45,13 @@ class AjaxHandler(tornado.web.RequestHandler):
         # Instead, write the data to a file line by line. This will work.
         import time
         write_start = time.time()
-        with open(file_name, "w", encoding="utf-8") as fo:
+        with open(file_name, "a", encoding="utf-8") as fo:
             for l in lines:
                 fo.write(l+"\n")
 
         path = "./seshat -c Config/CONFIG -i server/input.scgink"
         args = shlex.split(path)
-        p1 = subprocess.Popen(args, stdout=subprocess.PIPE, cwd="../")
+        p1 = subprocess.Popen(args, stdout=subprocess.PIPE)
 
         print("write & start elapse: ", time.time()-write_start) 
         output = p1.communicate()[0].decode()

@@ -38,7 +38,10 @@ class SymFeatures;
 #include "sample.h"
 #include "symfeatures.h"
 
-using namespace std;
+// using namespace std;
+using std::vector;
+using std::list;
+using std::pair;
 
 
 class SymRec{
@@ -56,7 +59,7 @@ class SymRec{
   
   int C; //Number of classes
   
-  void classify_simple(Sample *M, const int n_classes, int *classes_out, float *probs_out);
+  void classify_stroke_hypothesis(Sample *M, int *stroke_ids, int n_strokes, const int n_classes, int *classes_out, float *probs_out);
   int  classify(Sample *M, SegmentHyp *SegHyp, const int NB, int *vclase, float *vpr, int *as, int *ds);
   void BLSTMclassification( Mdrnn *net, DataSequence *seq, pair<float,int> *claspr, const int NB );
   
@@ -70,6 +73,7 @@ class SymRec{
   int   getNClases();
   int   symType(int k);
   
+  void classify_simple(Sample *M,int n_classes);
   int clasificar(Sample *M, int ncomp,     const int NB, int *vclase, float *vpr, int *as, int *ds);
   int clasificar(Sample *M, list<int> *LT, const int NB, int *vclase, float *vpr, int *as, int *ds);
 };

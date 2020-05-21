@@ -35,6 +35,8 @@ class SegmentationModelGMM{
   ~SegmentationModelGMM();
 
   float prob(CellCYK *cd, Sample *m);
+  float prob(std::vector<int> &strokes_list, Sample *m);
 };
 
 #endif
+

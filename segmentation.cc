@@ -33,20 +33,22 @@ SegmentationModelGMM::~SegmentationModelGMM() {
   delete model;
 }
 
-float SegmentationModelGMM::prob(CellCYK *cd, Sample *m) {
-  int Nstrokes=0, nps=0;
+float SegmentationModelGMM::prob(CellCYK *cd, Sample *m){
+  std::vector<int> strokes_list;
+  for(int i=0; i<cd->nc; i++){
+    if( cd->ccc[i] ){
+      strokes_list.push_back(i);
+    }
+  }
+  return prob(strokes_list, m);
+}
+
+
+float SegmentationModelGMM::prob(std::vector<int> &strokes_list, Sample *m) {
+  int nps=0;
   float dist=0, delta=0, sigma=0, mind=0, avgsize=0;
 
-  for(int i=0; i<cd->nc; i++)
-    if( cd->ccc[i] )
-      Nstrokes++;
-
-  int *strokes_list = new int[Nstrokes];
-  Nstrokes = 0;
-  for(int i=0; i<cd->nc; i++)
-    if( cd->ccc[i] )
-      strokes_list[Nstrokes++] = i;
-
+  int Nstrokes = strokes_list.size();
   //For every stroke
   for(int i=0; i<Nstrokes; i++) {
     Stroke *Si = m->getStroke( strokes_list[i] );
@@ -90,7 +92,7 @@ float SegmentationModelGMM::prob(CellCYK *cd, Sample *m) {
 
   model->posterior(sample, probs);
 
-  delete[] strokes_list;
+  // delete[] strokes_list;
 
   //Return probability of being a proper segmentation hypothesis
   return probs[1];

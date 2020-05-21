@@ -24,7 +24,14 @@
 #include <cfloat>
 #include "symrec.h"
 
+// using std::array;  
+// using std::vector;
+
+
 #define TSIZE 2048
+#define n_best 10
+#define max_strokes 4
+#define distance_th 0.69474973
 
 SymRec::SymRec(char *config) {
   FILE *fd=fopen(config, "r");
@@ -235,8 +242,222 @@ int SymRec::symType(int k) {
  * Classify *
  ************/
 
-void SymRec::classify_simple(Sample *M, const int n_classes, int *classes_out, float *probs_out){
+
+void SymRec::classify_simple(Sample *M,int n_classes){
+  // const int n_classes = n_best;
+  // int classes_out[n_classes];
+  // float probs_out[n_classes];
+  int N = M->nStrokes();
+
+  vector<int> hypotheses_out;
+  vector<int> classes_out;
+  vector<float> probs_out;
+  vector<pair<std::array<int, max_strokes>, int>> hypotheses;
+  int h_count = 0;
+  printf("START\n");
+  if( N<=1 ) return;
+  for(int stkc1=0; stkc1<N; stkc1++) {
+    std::array<int, max_strokes> s1_ids;
+    s1_ids[0] = stkc1;
+    hypotheses.push_back(std::make_pair(s1_ids,1));
+
+    for(int size=2; size<=min(max_strokes,N); size++) {
+      list<int> close_list;
+
+      //Add close and visible strokes to the closer list
+      if( size==2 ) {
+        for(int i=0; i<stkc1; i++){
+          if( M->getDist(stkc1, i) < distance_th ){
+            close_list.push_back(i);
+          }
+        }
+      }else{
+        M->get_close_strokes( stkc1, &close_list, distance_th );      
+      }
+
+      //If there are not enough strokes to compose a hypothesis of "size", continue
+      if( (int)close_list.size() < size-1 ) continue;
+
+      int *stkvec = new int[close_list.size()], VS=0;
+      for(list<int>::iterator it=close_list.begin(); it!=close_list.end(); it++){
+        stkvec[VS++] = *it;
+      }
+      
+      sort(stkvec, stkvec+VS);
+
+      for(int i=size-2; i<VS; i++) {
+        std::array<int, max_strokes> s_ids;
+        s_ids[0] = stkvec[i];
+        s_ids[1] = stkc1;
+        
+        //Add strokes up to size
+        int k = 2;
+        for(int j=i-(size-2); j<i; j++)
+          s_ids[k++] = stkvec[j];
+        
+        //Sort list (stroke's order is important in online classification)
+        sort(s_ids.begin(),s_ids.begin() + k);
+        hypotheses.push_back(std::make_pair(s_ids,k));
+      }
+      free(stkvec);
+    }
+  }
+  // #pragma omp parallel for
+  for(int i=0; i < hypotheses.size(); i++){
+    auto hyp = hypotheses[i];
+    
+    int c_buff[n_classes];
+    float p_buff[n_classes];
+
+    classify_stroke_hypothesis(M, hyp.first.data(), hyp.second, n_classes, c_buff, p_buff);
+
+    hypotheses_out.push_back(hyp.second);
+    for(int j=0; j < hyp.second; j++){
+      hypotheses_out.push_back(hyp.first[j]);
+    }
+    for(int j=0; j < n_classes; j++){
+      probs_out.push_back(p_buff[j]);
+      classes_out.push_back(c_buff[j]);
+    }
+    printf("hypothesis: {");
+    for(int j=0; j<hyp.second;j++){
+      printf(" %d", hyp.first[j]); 
+      //Print hypothesis information
+    }
+    printf(" }\n");
+    for(int j=0; j<n_classes; j++) {
+      // if( cd->noterm[j] ) {
+        printf("%12s %g\n", strClase(c_buff[j]), p_buff[j]);
+      // }
+    }
+  }
+}
+
+void SymRec::classify_stroke_hypothesis(Sample *M,
+                                        int *stroke_ids,
+                                        int n_strokes, 
+                                        const int n_classes,
+                                        int *classes_out,
+                                        float *probs_out){
+  SegmentHyp seg_h;
+
+  seg_h.rx = seg_h.ry = INT_MAX;
+  seg_h.rs = seg_h.rt = -INT_MAX;
+
+  for(int i=0; i<n_strokes; i++){//list<int>::iterator it=stroke_ids.begin(); it!=stroke_ids.end(); it++) {
+    int s_id = stroke_ids[i];
+    seg_h.stks.push_back( s_id );
+
+    if( M->getStroke(s_id)->rx < seg_h.rx ) seg_h.rx = M->getStroke(s_id)->rx;
+    if( M->getStroke(s_id)->ry < seg_h.ry ) seg_h.ry = M->getStroke(s_id)->ry;
+    if( M->getStroke(s_id)->rs > seg_h.rs ) seg_h.rs = M->getStroke(s_id)->rs;
+    if( M->getStroke(s_id)->rt > seg_h.rt ) seg_h.rt = M->getStroke(s_id)->rt;
+  }
   
+
+  int regy = INT_MAX, regt=-INT_MAX, N=0;
+
+  //First compute the vertical centroid (cen) and the ascendant/descendant centroids (as/ds)
+  seg_h.cen=0;
+  for(list<int>::iterator it=seg_h.stks.begin(); it!=seg_h.stks.end(); it++) {
+    for(int j=0; j<M->getStroke(*it)->getNpuntos(); j++) {
+      Punto *p = M->getStroke(*it)->get(j);
+  
+      if( M->getStroke(*it)->ry < regy )
+  regy = M->getStroke(*it)->ry;
+      if( M->getStroke(*it)->rt > regt )
+  regt = M->getStroke(*it)->rt;
+      
+      seg_h.cen += p->y;
+  
+      N++;
+    }
+
+  }
+  seg_h.cen /= N;
+  // *as = (seg_h.cen+regt)/2;
+  // *ds = (regy+seg_h.cen)/2;
+
+  //Feature extraction of hypothesis
+  DataSequence *feat_on, *feat_off;
+
+  //Online features extraction: PRHLT (7 features)
+  feat_on = FEAS->getOnline( M, &seg_h );
+
+  //Render the image representing the set of strokes seg_h->stks
+  int **img, Rows, Cols;
+  M->renderStrokesPBM(&seg_h.stks, &img, &Rows, &Cols);
+
+  //Offline features extraction: FKI (9 features)
+  feat_off = FEAS->getOfflineFKI(img, Rows, Cols);
+  
+  //cout << feat_off->inputs;
+
+  for(int i=0; i<Rows; i++)
+    delete[] img[i];
+  delete[] img;
+
+  //n-best classification
+  pair<float,int> clason[n_classes], clasoff[n_classes], clashyb[2*n_classes];
+    
+  for(int i=0; i<n_classes; i++) {
+    clason[i].first = 0.0; //probability
+    clason[i].second = -1; //class id
+    clasoff[i].first = 0.0;
+    clasoff[i].second = -1;
+    clashyb[i].first = 0.0;
+    clashyb[i].second = -1;
+  }
+
+  //Online/offline classification
+  BLSTMclassification( blstm_on,  feat_on,  clason,  n_classes);
+  BLSTMclassification( blstm_off, feat_off, clasoff, n_classes);
+
+  //Online + Offline n-best linear combination
+  //alpha * pr(on) + (1 - alpha) * pr(off)
+    
+  for(int i=0; i<n_classes; i++) {
+    clason[i].first  *= RNNalpha;       //online  *    alpha
+    clasoff[i].first *= 1.0 - RNNalpha; //offline * (1-alpha)
+  }
+
+  int hybnext=0;
+  for(int i=0; i<n_classes; i++) {
+    if( clason[i].second >= 0 ) {
+      
+      clashyb[hybnext].first  = clason[i].first;
+      clashyb[hybnext].second = clason[i].second;
+      
+      for(int j=0; j<n_classes; j++)
+  if( clason[i].second == clasoff[j].second ) {
+    clashyb[hybnext].first += clasoff[j].first;
+    break;
+  }
+      
+      hybnext++;
+    }
+      
+    if( clasoff[i].second < 0 ) continue;
+    bool found=false;
+    for(int j=0; j<n_classes && !found; j++)
+      if( clasoff[i].second == clason[j].second )
+  found = true;
+      
+    //Add the (1-alpha) probability if the class is in OFF but not in ON
+    if( !found ) {
+      clashyb[hybnext].first  = clasoff[i].first;
+      clashyb[hybnext].second = clasoff[i].second;
+      hybnext++;
+    }
+  }
+    
+  sort( clashyb, clashyb+hybnext, std::greater< pair<float,int> >() );
+  for(int i=0; i<min(hybnext, n_classes); i++) {
+    probs_out[i]    = clashyb[i].first;
+    classes_out[i] = clashyb[i].second;
+  }
+    
+  // return seg_h.cen;  
 
 }
 
@@ -265,13 +486,13 @@ int SymRec::clasificar(Sample *M, list<int> *LT, const int NB, int *vclase, floa
   return classify(M, &aux, NB, vclase, vpr, as, ds);
 }
 
-int SymRec::classify(Sample *M, SegmentHyp *SegHyp, const int NB, int *vclase, float *vpr, int *as, int *ds) {
+int SymRec::classify(Sample *M, SegmentHyp *seg_h, const int NB, int *vclase, float *vpr, int *as, int *ds) {
 
   int regy = INT_MAX, regt=-INT_MAX, N=0;
 
   //First compute the vertical centroid (cen) and the ascendant/descendant centroids (as/ds)
-  SegHyp->cen=0;
-  for(list<int>::iterator it=SegHyp->stks.begin(); it!=SegHyp->stks.end(); it++) {
+  seg_h->cen=0;
+  for(list<int>::iterator it=seg_h->stks.begin(); it!=seg_h->stks.end(); it++) {
     for(int j=0; j<M->getStroke(*it)->getNpuntos(); j++) {
       Punto *p = M->getStroke(*it)->get(j);
 	
@@ -280,25 +501,25 @@ int SymRec::classify(Sample *M, SegmentHyp *SegHyp, const int NB, int *vclase, f
       if( M->getStroke(*it)->rt > regt )
 	regt = M->getStroke(*it)->rt;
       
-      SegHyp->cen += p->y;
+      seg_h->cen += p->y;
 	
       N++;
     }
 
   }
-  SegHyp->cen /= N;
-  *as = (SegHyp->cen+regt)/2;
-  *ds = (regy+SegHyp->cen)/2;
+  seg_h->cen /= N;
+  *as = (seg_h->cen+regt)/2;
+  *ds = (regy+seg_h->cen)/2;
 
   //Feature extraction of hypothesis
   DataSequence *feat_on, *feat_off;
 
   //Online features extraction: PRHLT (7 features)
-  feat_on = FEAS->getOnline( M, SegHyp );
+  feat_on = FEAS->getOnline( M, seg_h );
 
-  //Render the image representing the set of strokes SegHyp->stks
+  //Render the image representing the set of strokes seg_h->stks
   int **img, Rows, Cols;
-  M->renderStrokesPBM(&SegHyp->stks, &img, &Rows, &Cols);
+  M->renderStrokesPBM(&seg_h->stks, &img, &Rows, &Cols);
 
   //Offline features extraction: FKI (9 features)
   feat_off = FEAS->getOfflineFKI(img, Rows, Cols);
@@ -369,7 +590,7 @@ int SymRec::classify(Sample *M, SegmentHyp *SegHyp, const int NB, int *vclase, f
     vclase[i] = clashyb[i].second;
   }
     
-  return SegHyp->cen;
+  return seg_h->cen;
 }
 
 

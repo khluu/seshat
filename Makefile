@@ -1,6 +1,6 @@
 CC=g++
 LINK=-lxerces-c -lm
-FLAGS = -O3 -Wno-unused-result -fpermissive -I/usr/include/boost
+FLAGS = -fopenmp -Wno-unused-result -fpermissive -I/usr/include/boost
 
 OBJFEAS=symfeatures.o featureson.o online.o
 OBJMUESTRA=sample.o stroke.o
@@ -9,6 +9,12 @@ OBJTABLA=tablecyk.o cellcyk.o hypothesis.o logspace.o
 OBJRNNLIB=Random.o DataExporter.o WeightContainer.o ClassificationLayer.o Layer.o Mdrnn.o Optimiser.o
 RNNLIBHEADERS=rnnlib4seshat/DataSequence.hpp rnnlib4seshat/NetcdfDataset.hpp rnnlib4seshat/Mdrnn.hpp rnnlib4seshat/MultilayerNet.hpp rnnlib4seshat/Rprop.hpp rnnlib4seshat/SteepestDescent.hpp rnnlib4seshat/Trainer.hpp rnnlib4seshat/WeightContainer.hpp
 OBJS=$(OBJFEAS) $(OBJMUESTRA) $(OBJPARSE) $(OBJTABLA) $(OBJRNNLIB)
+
+debug: FLAGS += -DDEBUG -g
+debug: seshat
+
+release: FLAGS += -O3
+release: seshat
 
 seshat: $(OBJS)
 	$(CC) -o seshat $(OBJS) $(FLAGS) $(LINK)

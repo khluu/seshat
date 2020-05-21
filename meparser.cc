@@ -504,6 +504,10 @@ CellCYK *meParser::fusion(Sample *M, ProductionB *pd, Hypothesis *A, Hypothesis 
 Parse Math Expression
 **************************************/
 void meParser::parse_me(Sample *M) {
+  // auto chrono0 = high_resolution_clock::now(); 
+  // sym_rec->classify_simple(M);
+  // printf("---Time Init %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono1 - chrono0).count());
+
   auto chrono1 = high_resolution_clock::now(); 
   M->setSymRec( sym_rec );
 
@@ -529,6 +533,13 @@ void meParser::parse_me(Sample *M) {
 
   auto chrono3_ = high_resolution_clock::now(); 
   printf("---Time stroke_distances %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono3_ - chrono2).count());
+
+  
+  sym_rec->classify_simple(M,NB);
+  auto chrono3_1 = high_resolution_clock::now(); 
+  printf("---Time Classify Simple %li ms ---\n", duration_cast<std::chrono::milliseconds>(chrono3_1 - chrono3_).count());
+
+  chrono3_ = high_resolution_clock::now(); 
 
   //Spatial structure for retrieving hypotheses within a certain region
   LogSpace **logspace = new LogSpace*[N];
