@@ -5,7 +5,7 @@ EMCC=g++
 
 OBJFEAS=symfeatures.o featureson.o online.o
 OBJMUESTRA=sample.o stroke.o
-OBJPARSE=seshat.o meparser.o gparser.o grammar.o production.o symrec.o duration.o segmentation.o sparel.o gmm.o
+OBJPARSE=meparser.o gparser.o grammar.o production.o symrec.o duration.o segmentation.o sparel.o gmm.o
 OBJTABLA=tablecyk.o cellcyk.o hypothesis.o logspace.o
 OBJRNNLIB=Random.o DataExporter.o WeightContainer.o ClassificationLayer.o Layer.o Mdrnn.o Optimiser.o
 RNNLIBHEADERS=rnnlib4seshat/DataSequence.hpp rnnlib4seshat/NetcdfDataset.hpp rnnlib4seshat/Mdrnn.hpp rnnlib4seshat/MultilayerNet.hpp rnnlib4seshat/Rprop.hpp rnnlib4seshat/SteepestDescent.hpp rnnlib4seshat/Trainer.hpp rnnlib4seshat/WeightContainer.hpp
@@ -20,14 +20,17 @@ debug: seshat
 release: FLAGS += -O3
 release: seshat
 
+
 wasm: CC=em++
-wasm: FLAGS += -D CLANG -s USE_BOOST_HEADERS=1
+wasm: FLAGS += -D CLANG -s USE_BOOST_HEADERS=1 -O3
 wasm: symrec.wasm
+
+
 
 
 EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=0 -s WASM=1 -s MODULARIZE=1 \
  		   -s EXPORT_NAME='c_BezierFit' -s ENVIRONMENT=web  \
- 		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind 
+ 		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind --embed-file Config
 
 # symrec.bc: symrec.h symrec.cc symfeatures.o $(RNNLIBHEADERS)
 # 	$(EMCC) -c symrec.cc $(FLAGS)
@@ -37,13 +40,15 @@ EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=0 -s WASM=1 -s MODULARIZE=1 \
 # 	$(EMCC) -c online.cc $(FLAGS)
 # featureson.bc: featureson.cc featureson.h online.bc
 # 	$(EMCC) -c featureson.cc $(FLAGS)
-
+test: FLAGS += -DDEBUG -g
+test: test.cc $(OBJS)
+	$(CC) -o test test.cc $(OBJS) $(FLAGS) $(LINK)
 
 symrec.wasm: $(OBJS)
 	$(CC) -o symrec.js $(OBJS) $(FLAGS) $(EMCCFLAGS) -lm
 
-seshat: $(OBJS)
-	$(CC) -o seshat $(OBJS) $(FLAGS) $(LINK)
+seshat: seshat.o $(OBJS)
+	$(CC) -o seshat seshat.o $(OBJS) $(FLAGS) $(LINK)
 
 seshat.o: seshat.cc grammar.o sample.o meparser.o
 	$(CC) -c seshat.cc $(FLAGS)

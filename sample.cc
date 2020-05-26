@@ -61,26 +61,31 @@ bool isRelation(char *str) {
 Sample::Sample(double *points, int n_strokes){
   int offset = 0;
   for(int s=0; s<n_strokes; s++){
-    double n_pts = points[0];
+    double n_pts = points[offset];
     offset++;
-    Stroke *stroke = new Stroke(n_pts);
+    Stroke *stroke = new Stroke(n_pts, s);
 
-    int cx = 0;
-    int cy = 0;
+    // int cx = 0;
+    // int cy = 0;
     for(int i=0; i<n_pts;i++){
       Punto p = {(float)points[offset],(float)points[offset+1]};
-      cx += p.x;
-      cy += p.y;
+      printf("%f,%f\n",p.x,p.y );
+      // cx += p.x;
+      // cy += p.y;
       offset += 2;
       stroke->set(i,&p);
     }
-    stroke->cx = cx/n_pts;
-    stroke->cy = cy/n_pts;
+    // stroke->cx = cx/n_pts;
+    // stroke->cy = cy/n_pts;
     dataon.push_back(stroke);
   }
+
+  compute_bounds();
   //Render image representation
   dataoff = render(&X, &Y);
 }
+
+
 
 Sample::Sample(char *in) {
 
@@ -103,6 +108,14 @@ Sample::Sample(char *in) {
     loadInkML( in );
 #endif
   
+
+  compute_bounds();
+  //Render image representation
+  dataoff = render(&X, &Y);
+ }
+
+
+void Sample::compute_bounds(){
   ox = oy =  INT_MAX;
   os = ot = -INT_MAX;
   for(int i=0; i<nStrokes(); i++) {
@@ -123,11 +136,7 @@ Sample::Sample(char *in) {
     dataon[i]->cx /= np;
     dataon[i]->cy /= np;
   }
-
-  //Render image representation
-  dataoff = render(&X, &Y);
- }
-
+}
 
 void Sample::setSymRec( SymRec *sr ){
   SR = sr;
@@ -550,11 +559,15 @@ void Sample::setRegion(CellCYK *c, int *v, int size) {
 
 void Sample::print() {
   printf("Number of strokes: %d\n", nStrokes());
-  
-  // for(int i=0; i<nStrokes(); i++) {
-  //   printf("Stroke %d: (%d,%d)-(%d,%d)\n", i, dataon[i]->rx, dataon[i]->ry,
-  // 	   dataon[i]->rs, dataon[i]->rt);
-  // }
+#if !defined( CLANG )
+  for(int i=0; i<nStrokes(); i++) {
+    printf("Stroke %d: [%d] (%d,%d)-(%d,%d)-(%d,%d)\n", i, dataon[i]->getId(), dataon[i]->rx, dataon[i]->ry,
+  	   dataon[i]->rs, dataon[i]->rt, dataon[i]->cx, dataon[i]->cy);
+    for(int j=0; j<dataon[i]->getNpuntos(); j++) {
+      printf("%f,%f\n",dataon[i]->get(j)->x,dataon[i]->get(j)->y);
+    }
+  }
+#endif
 }
 
 

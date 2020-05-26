@@ -23,7 +23,7 @@ bool esNum(char c){
   return (c >= '0' && c <= '9') || c=='-' || c=='.';
 }
 
-Stroke::Stroke(int np) {
+Stroke::Stroke(int np,int inkml_id) {
   NP = np;
   pseq = new Punto[NP];
 
@@ -32,6 +32,8 @@ Stroke::Stroke(int np) {
   rs = rt = -INT_MAX;
   for(int i=0; i<NP; i++)
     pseq[i].x = pseq[i].y = -1;
+
+  id = inkml_id;
 }
 
 Stroke::Stroke(int np, FILE *fd) {

@@ -265,7 +265,7 @@ void SymRec::classify_simple(Sample *M,int n_classes){
   vector<pair<std::array<int, max_strokes>, int>> hypotheses;
   int h_count = 0;
   printf("START\n");
-  if( N<=1 ) return;
+  // if( N<=1 ) return;
   for(int stkc1=0; stkc1<N; stkc1++) {
     std::array<int, max_strokes> s1_ids;
     s1_ids[0] = stkc1;

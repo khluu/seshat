@@ -67,6 +67,7 @@ class Sample{
   void linea(int **img, Punto *pa, Punto *pb, int stkid);
   void linea_pbm(int **img, Punto *pa, Punto *pb, int stkid);
   bool not_visible(int si, int sj, Punto *pi, Punto *pj);
+  void compute_bounds();
 
 public:
   //Normalized reference symbol size

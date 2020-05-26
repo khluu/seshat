@@ -47,7 +47,7 @@ class Stroke{
   int rx, ry, rs, rt;
   int cx, cy; //Centroid
   
-  Stroke(int np);
+  Stroke(int np, int inkml_id);
   Stroke(int np, FILE *fd);
   Stroke(FILE *fd);
   Stroke(char *str, int inkml_id);

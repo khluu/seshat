@@ -60,8 +60,10 @@ class meParser{
   CellCYK* fusion(Sample *M, ProductionB *pd, Hypothesis *A, Hypothesis *B, int N, double prob);
 
  public:
+  meParser();
   meParser(char *conf);
   ~meParser();
+  void init(char *conf);
 
   void recognize_symbols(double *points, int n_strokes, int n_classes);
   //Parse math expression
