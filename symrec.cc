@@ -241,7 +241,17 @@ int SymRec::symType(int k) {
 /************
  * Classify *
  ************/
+// void c_classify_simple(double *points, int n_strokes, int n_classes){
+//   SymRec symrec;
+//   Sample *M = new Sample(points, n_strokes);
+//   symrec.classify_simple(M,n_classes);
+//   // for(int s=0; s<n_strokes; s++){
+//   //   double n_pts = points[0];
+//   //   for(int i=0; i<n_pts;i++){
 
+//   //   }
+//   // }
+// }
 
 void SymRec::classify_simple(Sample *M,int n_classes){
   // const int n_classes = n_best;

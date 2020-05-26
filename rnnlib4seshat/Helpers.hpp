@@ -98,6 +98,11 @@ typedef float real_t;
 typedef double real_t;
 #endif
 
+template<class T> static string str(const T& t);
+template <class C, class Tr, class R> static basic_ostream<C, Tr>& operator <<(
+    basic_ostream<C, Tr>& out, const R& r);
+template <class C, class Tr, class R> static basic_ostream<C, Tr>& operator <<(
+    basic_ostream<C, Tr>& out, const R& r);
 
 typedef vector<size_t>::const_iterator VSTCI;
 typedef vector<real_t>::iterator VDI;
@@ -265,6 +270,7 @@ template <class T> static T bound (
     const T& v, const T& minVal, const T& maxVal) {
   return min(max(minVal, v), maxVal);
 }
+
 //CAST OPERATIONS
 template<class T> static string str(const T& t) {
   stringstream ss;

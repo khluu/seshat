@@ -1,6 +1,7 @@
 CC=g++
 LINK=-lxerces-c -lm
-FLAGS = -fopenmp -Wno-unused-result -fpermissive -I/usr/include/boost
+FLAGS = -std=c++14 -Wno-unused-result -fpermissive  #-I /usr/include
+EMCC=g++
 
 OBJFEAS=symfeatures.o featureson.o online.o
 OBJMUESTRA=sample.o stroke.o
@@ -10,11 +11,36 @@ OBJRNNLIB=Random.o DataExporter.o WeightContainer.o ClassificationLayer.o Layer.
 RNNLIBHEADERS=rnnlib4seshat/DataSequence.hpp rnnlib4seshat/NetcdfDataset.hpp rnnlib4seshat/Mdrnn.hpp rnnlib4seshat/MultilayerNet.hpp rnnlib4seshat/Rprop.hpp rnnlib4seshat/SteepestDescent.hpp rnnlib4seshat/Trainer.hpp rnnlib4seshat/WeightContainer.hpp
 OBJS=$(OBJFEAS) $(OBJMUESTRA) $(OBJPARSE) $(OBJTABLA) $(OBJRNNLIB)
 
+COMPILER_TYPE=GNU
+
+
 debug: FLAGS += -DDEBUG -g
 debug: seshat
 
 release: FLAGS += -O3
 release: seshat
+
+wasm: CC=em++
+wasm: FLAGS += -D CLANG -s USE_BOOST_HEADERS=1
+wasm: symrec.wasm
+
+
+EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=0 -s WASM=1 -s MODULARIZE=1 \
+ 		   -s EXPORT_NAME='c_BezierFit' -s ENVIRONMENT=web  \
+ 		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind 
+
+# symrec.bc: symrec.h symrec.cc symfeatures.o $(RNNLIBHEADERS)
+# 	$(EMCC) -c symrec.cc $(FLAGS)
+# symfeatures.bc: symfeatures.cc online.o featureson.o
+# 	$(EMCC) -c symfeatures.cc $(FLAGS)
+# online.bc: online.cc online.h
+# 	$(EMCC) -c online.cc $(FLAGS)
+# featureson.bc: featureson.cc featureson.h online.bc
+# 	$(EMCC) -c featureson.cc $(FLAGS)
+
+
+symrec.wasm: $(OBJS)
+	$(CC) -o symrec.js $(OBJS) $(FLAGS) $(EMCCFLAGS) -lm
 
 seshat: $(OBJS)
 	$(CC) -o seshat $(OBJS) $(FLAGS) $(LINK)

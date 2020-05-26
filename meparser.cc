@@ -18,11 +18,20 @@
 #include "meparser.h"
 #include <chrono> 
 
+#ifdef CLANG
+#include <emscripten/bind.h>
+#include <emscripten/val.h>
+#endif
+
 using namespace std::chrono;
 
 using json = nlohmann::json;
 //Symbol classifier N-Best
 #define NB 10
+
+// meParser::meParser(std::string s) {
+//     new (this) meParser(s.c_str());
+// }
 
 meParser::meParser(char *conf) {
   FILE *fconfig=fopen(conf, "r");
@@ -497,7 +506,11 @@ CellCYK *meParser::fusion(Sample *M, ProductionB *pd, Hypothesis *A, Hypothesis 
 }
 
 
-
+void meParser::recognize_symbols(double *points, int n_strokes, int n_classes) {
+  Sample *M = new Sample(points, n_strokes);
+  sym_rec->classify_simple(M,NB);
+  delete M;
+}
 
 
 /*************************************
@@ -1220,3 +1233,16 @@ int meParser::tree2dot(FILE *fd, Hypothesis *H, int id) {
 
   return nid;
 }
+
+
+#ifdef CLANG
+EMSCRIPTEN_BINDINGS(meparser) {
+  emscripten::class_<meParser>("meParser")
+    .constructor<char*>()
+    .function("recognize_symbols", &meParser::recognize_symbols);
+    // .function("incrementX", &MyClass::incrementX)
+    // .property("x", &MyClass::getX, &MyClass::setX)
+    // .class_function("getStringFromInstance", &MyClass::getStringFromInstance)
+}
+
+#endif

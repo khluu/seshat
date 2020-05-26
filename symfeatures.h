@@ -30,6 +30,7 @@ class DataSequence;
 #include "online.h"
 #include "featureson.h"
 #include "sample.h"
+// #include "rnnlib4seshat/Helpers.hpp"
 
 class SymFeatures{
   static const int  ON_FEAT = 7;

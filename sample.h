@@ -59,8 +59,9 @@ class Sample{
   char *outinkml, *outdot, *outtree, *outbboxes;
   string UItag;
   int next_id;
-
+#if !defined( CLANG )
   void loadInkML(char *str);
+#endif
   void loadSCGInk(char *str);
 
   void linea(int **img, Punto *pa, Punto *pb, int stkid);
@@ -77,6 +78,7 @@ public:
   int bx, by, bs, bt; //Offline bounding box
 
   Sample(char *in);
+  Sample(double *points, int n_strokes);
   ~Sample();
 
   int dimX();

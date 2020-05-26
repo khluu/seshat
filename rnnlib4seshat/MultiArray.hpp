@@ -19,6 +19,7 @@ along with RNNLIB.  If not, see <http://www.gnu.org/licenses/>.*/
 #define _INCLUDED_MultiArray_h
 
 #include <iostream>
+#include <sstream>
 #include <numeric>
 #include <vector>
 #include <algorithm>

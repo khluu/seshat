@@ -48,6 +48,7 @@ along with RNNLIB.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "SeqBuffer.hpp"
 #include "DataExporter.hpp"
 #include "WeightContainer.hpp"
+#include "Helpers.hpp"
 
 extern bool verbose;
 

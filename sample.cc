@@ -28,6 +28,7 @@
 #include <queue>
 #include "sample.h"
 
+#if !defined( CLANG )
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/util/XMLUni.hpp>
@@ -40,6 +41,7 @@
 #include <xercesc/dom/DOMNodeIterator.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/dom/DOMText.hpp>
+#endif
 
 #define PI 3.14159265
 
@@ -56,6 +58,29 @@ bool isRelation(char *str) {
   return false;
 }
 
+Sample::Sample(double *points, int n_strokes){
+  int offset = 0;
+  for(int s=0; s<n_strokes; s++){
+    double n_pts = points[0];
+    offset++;
+    Stroke *stroke = new Stroke(n_pts);
+
+    int cx = 0;
+    int cy = 0;
+    for(int i=0; i<n_pts;i++){
+      Punto p = {(float)points[offset],(float)points[offset+1]};
+      cx += p.x;
+      cy += p.y;
+      offset += 2;
+      stroke->set(i,&p);
+    }
+    stroke->cx = cx/n_pts;
+    stroke->cy = cy/n_pts;
+    dataon.push_back(stroke);
+  }
+  //Render image representation
+  dataoff = render(&X, &Y);
+}
 
 Sample::Sample(char *in) {
 
@@ -73,8 +98,10 @@ Sample::Sample(char *in) {
 
   if( !isInkML )
     loadSCGInk( in );
+#if !defined( CLANG )
   else
     loadInkML( in );
+#endif
   
   ox = oy =  INT_MAX;
   os = ot = -INT_MAX;
@@ -134,6 +161,7 @@ void Sample::loadSCGInk(char *str) {
   fclose(fd);
 }
 
+#if !defined( CLANG )
 void Sample::loadInkML(char *str) {
   
   //Check if file exists
@@ -307,7 +335,7 @@ void Sample::loadInkML(char *str) {
   }
 
 }
-
+#endif
 
 Sample::~Sample() {
   for(int i=0; i<nStrokes(); i++) {

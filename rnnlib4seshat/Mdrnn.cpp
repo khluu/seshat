@@ -40,6 +40,6 @@ along with RNNLIB.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "Mdrnn.hpp"
 
 ostream& operator << (ostream& out, const Mdrnn& net) {
-  net.print(out);
+  // net.print(out);
   return out;
 }

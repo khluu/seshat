@@ -9,7 +9,7 @@ import json
 import os
 
 d = os.path.dirname(__file__)
-os.chdir(os.path.abspath(os.path.join(d,"../")))
+os.chdir(os.path.abspath(os.path.join(d,"../",'server')))
 print(os.getcwd())
 PORT = 8000
 define("port", default=PORT, help="run on the given port", type=int)
@@ -18,12 +18,12 @@ define("port", default=PORT, help="run on the given port", type=int)
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         # main page set up
-        self.render("server/index.html", messages=None)
+        self.render("index.html", messages=None)
 
 
 class interactiveHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("server/testing/interactive.html", messages=None)
+        self.render("testing/interactive.html", messages=None)
 
 
 class AjaxHandler(tornado.web.RequestHandler):
@@ -33,7 +33,7 @@ class AjaxHandler(tornado.web.RequestHandler):
         self.finish()
 
     def post(self, *args):
-        file_name = "server/input.scgink"
+        file_name = "input.scgink"
         scg = tornado.escape.json_decode(self.request.body)
         lines = scg.split("\n")
         # print(lines)
@@ -51,7 +51,7 @@ class AjaxHandler(tornado.web.RequestHandler):
 
         path = "./seshat -c Config/CONFIG -i server/input.scgink"
         args = shlex.split(path)
-        p1 = subprocess.Popen(args, stdout=subprocess.PIPE)
+        p1 = subprocess.Popen(args, stdout=subprocess.PIPE, cwd="../")
 
         print("write & start elapse: ", time.time()-write_start) 
         output = p1.communicate()[0].decode()

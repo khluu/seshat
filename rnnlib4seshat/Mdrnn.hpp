@@ -409,33 +409,33 @@ struct Mdrnn {
     return error;
   }
 
-  virtual void print(ostream& out = cout) const {
-    out << typeid(*this).name() << endl;
-    prt_line(out);
-    out << hiddenLayers.size() + 2 << " layers:" << endl;
-    out << (Layer&)*(inputLayer) << endl;
-    LOOP(const Layer* layer, hiddenLayers) {
-      if (is_recurrent(layer)) {
-        out << "(R) ";
-      }
-      out << *layer << endl;
-    }
-    LOOP(const Layer* layer, outputLayers) {
-      out << *layer << endl;
-    }
-    prt_line(out);
-    out << connections.size() << " connections:" << endl;
-    for (CONST_CONN_IT it = connections.begin(); it != connections.end();
-         ++it) {
-      out << *it->second << endl;
-    }
-    prt_line(out);
-    PRINT(bidirectional, out);
-    PRINT(symmetry, out);
-    if (inputBlockLayer) {
-      PRINT(inputBlock, out);
-    }
-  }
+  // virtual void print(ostream& out = cout) const {
+  //   out << typeid(*this).name() << endl;
+  //   prt_line(out);
+  //   out << hiddenLayers.size() + 2 << " layers:" << endl;
+  //   out << (Layer&)*(inputLayer) << endl;
+  //   LOOP(const Layer* layer, hiddenLayers) {
+  //     if (is_recurrent(layer)) {
+  //       out << "(R) ";
+  //     }
+  //     out << *layer << endl;
+  //   }
+  //   LOOP(const Layer* layer, outputLayers) {
+  //     out << *layer << endl;
+  //   }
+  //   prt_line(out);
+  //   out << connections.size() << " connections:" << endl;
+  //   for (CONST_CONN_IT it = connections.begin(); it != connections.end();
+  //        ++it) {
+  //     out << *it->second << endl;
+  //   }
+  //   prt_line(out);
+  //   PRINT(bidirectional, out);
+  //   PRINT(symmetry, out);
+  //   if (inputBlockLayer) {
+  //     PRINT(inputBlock, out);
+  //   }
+  // }
 
   virtual void print_output_shape(ostream& out = cout) const {
     LOOP(const Layer* l, outputLayers) {

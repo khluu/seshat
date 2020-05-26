@@ -63,6 +63,7 @@ class meParser{
   meParser(char *conf);
   ~meParser();
 
+  void recognize_symbols(double *points, int n_strokes, int n_classes);
   //Parse math expression
   void parse_me(Sample *M);
   
