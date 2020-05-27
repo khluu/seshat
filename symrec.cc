@@ -253,7 +253,7 @@ int SymRec::symType(int k) {
 //   // }
 // }
 
-void SymRec::classify_simple(Sample *M,int n_classes){
+std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Sample *M,int n_classes, list<list<int>>* only_hyps){
   // const int n_classes = n_best;
   // int classes_out[n_classes];
   // float probs_out[n_classes];
@@ -266,50 +266,63 @@ void SymRec::classify_simple(Sample *M,int n_classes){
   int h_count = 0;
   printf("START\n");
   // if( N<=1 ) return;
-  for(int stkc1=0; stkc1<N; stkc1++) {
-    std::array<int, max_strokes> s1_ids;
-    s1_ids[0] = stkc1;
-    hypotheses.push_back(std::make_pair(s1_ids,1));
+  if(only_hyps != NULL){
+    for(list<list<int>>::iterator it1=only_hyps->begin(); it1!=only_hyps->end(); it1++){
+      std::array<int, max_strokes> s0_ids;
+      int i=0;
+      for(list<int>::iterator it2=it1->begin(); it2!=it1->end(); it2++){
+        s0_ids[i++] = *it2;
+        if(i > max_strokes) break;
+      }
+      hypotheses.push_back(std::make_pair(s0_ids,i)); 
+    }
+        
+  }else{
+    for(int stkc1=0; stkc1<N; stkc1++) {
+      std::array<int, max_strokes> s1_ids;
+      s1_ids[0] = stkc1;
+      hypotheses.push_back(std::make_pair(s1_ids,1));
 
-    for(int size=2; size<=min(max_strokes,N); size++) {
-      list<int> close_list;
+      for(int size=2; size<=min(max_strokes,N); size++) {
+        list<int> close_list;
 
-      //Add close and visible strokes to the closer list
-      if( size==2 ) {
-        for(int i=0; i<stkc1; i++){
-          if( M->getDist(stkc1, i) < distance_th ){
-            close_list.push_back(i);
+        //Add close and visible strokes to the closer list
+        if( size==2 ) {
+          for(int i=0; i<stkc1; i++){
+            if( M->getDist(stkc1, i) < distance_th ){
+              close_list.push_back(i);
+            }
           }
+        }else{
+          M->get_close_strokes( stkc1, &close_list, distance_th );      
         }
-      }else{
-        M->get_close_strokes( stkc1, &close_list, distance_th );      
-      }
 
-      //If there are not enough strokes to compose a hypothesis of "size", continue
-      if( (int)close_list.size() < size-1 ) continue;
+        //If there are not enough strokes to compose a hypothesis of "size", continue
+        if( (int)close_list.size() < size-1 ) continue;
 
-      int *stkvec = new int[close_list.size()], VS=0;
-      for(list<int>::iterator it=close_list.begin(); it!=close_list.end(); it++){
-        stkvec[VS++] = *it;
-      }
-      
-      sort(stkvec, stkvec+VS);
-
-      for(int i=size-2; i<VS; i++) {
-        std::array<int, max_strokes> s_ids;
-        s_ids[0] = stkvec[i];
-        s_ids[1] = stkc1;
+        int *stkvec = new int[close_list.size()], VS=0;
+        for(list<int>::iterator it=close_list.begin(); it!=close_list.end(); it++){
+          stkvec[VS++] = *it;
+        }
         
-        //Add strokes up to size
-        int k = 2;
-        for(int j=i-(size-2); j<i; j++)
-          s_ids[k++] = stkvec[j];
-        
-        //Sort list (stroke's order is important in online classification)
-        sort(s_ids.begin(),s_ids.begin() + k);
-        hypotheses.push_back(std::make_pair(s_ids,k));
+        sort(stkvec, stkvec+VS);
+
+        for(int i=size-2; i<VS; i++) {
+          std::array<int, max_strokes> s_ids;
+          s_ids[0] = stkvec[i];
+          s_ids[1] = stkc1;
+          
+          //Add strokes up to size
+          int k = 2;
+          for(int j=i-(size-2); j<i; j++)
+            s_ids[k++] = stkvec[j];
+          
+          //Sort list (stroke's order is important in online classification)
+          sort(s_ids.begin(),s_ids.begin() + k);
+          hypotheses.push_back(std::make_pair(s_ids,k));
+        }
+        free(stkvec);
       }
-      free(stkvec);
     }
   }
   // #pragma omp parallel for
@@ -341,6 +354,7 @@ void SymRec::classify_simple(Sample *M,int n_classes){
       // }
     }
   }
+  return make_tuple(hypotheses_out,classes_out,probs_out);
 }
 
 void SymRec::classify_stroke_hypothesis(Sample *M,

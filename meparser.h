@@ -65,7 +65,9 @@ class meParser{
   ~meParser();
   void init(char *conf);
 
-  void recognize_symbols(double *points, int n_strokes, int n_classes);
+  void recognize_symbol_recast(uintptr_t pts_ptr, int n_strokes, int n_classes, uintptr_t cls_ptr, uintptr_t prob_ptr);
+  std::tuple<vector<int>,vector<float>> recognize_symbol(double *points, int n_strokes, int n_classes);
+  std::tuple<vector<int>,vector<int>,vector<float>> recognize_symbols(double *points, int n_strokes, int n_classes);
   //Parse math expression
   void parse_me(Sample *M);
   

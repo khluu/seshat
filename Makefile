@@ -23,14 +23,16 @@ release: seshat
 
 wasm: CC=em++
 wasm: FLAGS += -D CLANG -s USE_BOOST_HEADERS=1 -O3
-wasm: symrec.wasm
+wasm: export NODE_OPTIONS=--max-old-space-size=8192
+wasm: seshat.js
 
 
 
 
-EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=0 -s WASM=1 -s MODULARIZE=1 \
- 		   -s EXPORT_NAME='c_BezierFit' -s ENVIRONMENT=web  \
- 		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind --embed-file Config
+EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=1 -s WASM=1 -s MODULARIZE=1 \
+ 		   -s EXPORT_NAME='c_Seshat' -s ENVIRONMENT=web  \
+ 		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind --preload-file Config \
+ 		   -s ALLOW_MEMORY_GROWTH=1
 
 # symrec.bc: symrec.h symrec.cc symfeatures.o $(RNNLIBHEADERS)
 # 	$(EMCC) -c symrec.cc $(FLAGS)
@@ -44,8 +46,11 @@ test: FLAGS += -DDEBUG -g
 test: test.cc $(OBJS)
 	$(CC) -o test test.cc $(OBJS) $(FLAGS) $(LINK)
 
-symrec.wasm: $(OBJS)
-	$(CC) -o symrec.js $(OBJS) $(FLAGS) $(EMCCFLAGS) -lm
+seshat.js: $(OBJS)
+	$(CC) -o seshat.js $(OBJS) $(EMCCFLAGS) -lm
+	sed -i '1s/^/\/\* eslint no-unused-expressions:0 no-restricted-globals:0 \*\/\n/' seshat.js
+	sed -i '1s/^/\/\* global readline Browser FUNCTION_TABLE, FinalizationGroup \*\/\n/' seshat.js
+	sed -i "s/import.meta.url/'.'/g" seshat.js
 
 seshat: seshat.o $(OBJS)
 	$(CC) -o seshat seshat.o $(OBJS) $(FLAGS) $(LINK)

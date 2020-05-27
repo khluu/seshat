@@ -42,6 +42,8 @@ class SymFeatures;
 using std::vector;
 using std::list;
 using std::pair;
+using std::tuple;
+using std::make_tuple;
 
 
 class SymRec{
@@ -73,7 +75,7 @@ class SymRec{
   int   getNClases();
   int   symType(int k);
   
-  void classify_simple(Sample *M,int n_classes);
+  std::tuple<vector<int>, vector<int>, vector<float>> classify_simple(Sample *M,int n_classes, list<list<int>>* only_hyps = NULL);
   int clasificar(Sample *M, int ncomp,     const int NB, int *vclase, float *vpr, int *as, int *ds);
   int clasificar(Sample *M, list<int> *LT, const int NB, int *vclase, float *vpr, int *as, int *ds);
 };
