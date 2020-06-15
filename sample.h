@@ -46,7 +46,7 @@ struct SegmentHyp{
 
 class Sample{
   vector<Stroke*> dataon;
-  float **stk_dis;
+  float **stk_dis=NULL;
 
   int **dataoff;
   int X, Y;
@@ -56,7 +56,7 @@ class Sample{
   SymRec *SR;
 
   //Information to create the output InkML file
-  char *outinkml, *outdot, *outtree, *outbboxes;
+  char *outinkml, *outdot, *outtree, *outbboxes = NULL;
   string UItag;
   int next_id;
 #if !defined( CLANG )

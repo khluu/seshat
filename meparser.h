@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include <tuple>
 #include "symrec.h"
 #include "sample.h"
 #include "sparel.h"
@@ -65,6 +66,7 @@ class meParser{
   ~meParser();
   void init(char *conf);
 
+  vector<string> getSymbolStrings();
   void recognize_symbol_recast(uintptr_t pts_ptr, int n_strokes, int n_classes, uintptr_t cls_ptr, uintptr_t prob_ptr);
   std::tuple<vector<int>,vector<float>> recognize_symbol(double *points, int n_strokes, int n_classes);
   std::tuple<vector<int>,vector<int>,vector<float>> recognize_symbols(double *points, int n_strokes, int n_classes);

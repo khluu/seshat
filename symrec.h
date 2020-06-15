@@ -76,6 +76,7 @@ class SymRec{
   int   symType(int k);
   
   std::tuple<vector<int>, vector<int>, vector<float>> classify_simple(Sample *M,int n_classes, list<list<int>>* only_hyps = NULL);
+  vector<string> getSymbolStrings();
   int clasificar(Sample *M, int ncomp,     const int NB, int *vclase, float *vpr, int *as, int *ds);
   int clasificar(Sample *M, list<int> *LT, const int NB, int *vclase, float *vpr, int *as, int *ds);
 };

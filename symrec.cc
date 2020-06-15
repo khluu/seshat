@@ -253,6 +253,14 @@ int SymRec::symType(int k) {
 //   // }
 // }
 
+vector<string> SymRec::getSymbolStrings(){
+  vector<string> out;
+  for(int i=0; i < C; i++){
+    out.push_back(key2cl[i]);
+  }
+  return out;
+}
+
 std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Sample *M,int n_classes, list<list<int>>* only_hyps){
   // const int n_classes = n_best;
   // int classes_out[n_classes];
@@ -264,7 +272,7 @@ std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Samp
   vector<float> probs_out;
   vector<pair<std::array<int, max_strokes>, int>> hypotheses;
   int h_count = 0;
-  printf("START\n");
+  // printf("START\n");
   // if( N<=1 ) return;
   if(only_hyps != NULL){
     for(list<list<int>>::iterator it1=only_hyps->begin(); it1!=only_hyps->end(); it1++){
@@ -300,7 +308,8 @@ std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Samp
         //If there are not enough strokes to compose a hypothesis of "size", continue
         if( (int)close_list.size() < size-1 ) continue;
 
-        int *stkvec = new int[close_list.size()], VS=0;
+        int stkvec [close_list.size()];
+        int VS=0;
         for(list<int>::iterator it=close_list.begin(); it!=close_list.end(); it++){
           stkvec[VS++] = *it;
         }
@@ -321,7 +330,7 @@ std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Samp
           sort(s_ids.begin(),s_ids.begin() + k);
           hypotheses.push_back(std::make_pair(s_ids,k));
         }
-        free(stkvec);
+        // free(stkvec);
       }
     }
   }
@@ -342,17 +351,17 @@ std::tuple<vector<int>, vector<int>, vector<float>> SymRec::classify_simple(Samp
       probs_out.push_back(p_buff[j]);
       classes_out.push_back(c_buff[j]);
     }
-    printf("hypothesis: {");
-    for(int j=0; j<hyp.second;j++){
-      printf(" %d", hyp.first[j]); 
-      //Print hypothesis information
-    }
-    printf(" }\n");
-    for(int j=0; j<n_classes; j++) {
-      // if( cd->noterm[j] ) {
-        printf("%12s %g\n", strClase(c_buff[j]), p_buff[j]);
-      // }
-    }
+    // printf("hypothesis: {");
+    // for(int j=0; j<hyp.second;j++){
+    //   printf(" %d", hyp.first[j]); 
+    //   //Print hypothesis information
+    // }
+    // printf(" }\n");
+    // for(int j=0; j<n_classes; j++) {
+    //   // if( cd->noterm[j] ) {
+    //     printf("%12s %g\n", strClase(c_buff[j]), p_buff[j]);
+    //   // }
+    // }
   }
   return make_tuple(hypotheses_out,classes_out,probs_out);
 }

@@ -32,7 +32,7 @@ wasm: seshat.js
 EMCCFLAGS= -s USE_PTHREADS=0 -s FILESYSTEM=1 -s WASM=1 -s MODULARIZE=1 \
  		   -s EXPORT_NAME='c_Seshat' -s ENVIRONMENT=web  \
  		   -s EXPORT_ES6=1 -s INVOKE_RUN=0 --bind --preload-file Config \
- 		   -s ALLOW_MEMORY_GROWTH=1
+ 		   -s ALLOW_MEMORY_GROWTH=0 -s TOTAL_MEMORY=64MB
 
 # symrec.bc: symrec.h symrec.cc symfeatures.o $(RNNLIBHEADERS)
 # 	$(EMCC) -c symrec.cc $(FLAGS)

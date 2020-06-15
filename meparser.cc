@@ -512,24 +512,31 @@ CellCYK *meParser::fusion(Sample *M, ProductionB *pd, Hypothesis *A, Hypothesis 
 }
 
 
+vector<string> meParser::getSymbolStrings(){
+  return sym_rec->getSymbolStrings();
+}
+
 void meParser::recognize_symbol_recast(uintptr_t pts_ptr, int n_strokes, int n_classes, uintptr_t cls_ptr, uintptr_t prob_ptr) {
   double* points = reinterpret_cast<double*>(pts_ptr);
   int* classes_out = reinterpret_cast<int*>(cls_ptr);
   float* probs_out = reinterpret_cast<float*>(prob_ptr);
   vector<int> classes;
   vector<float> probs;
-  tie(classes,probs) = recognize_symbol(points,n_strokes,n_classes);
+  std::tie(classes,probs) = recognize_symbol(points,n_strokes,n_classes);
   std::copy(classes.begin(),classes.end(),classes_out);
   std::copy(probs.begin(),probs.end(),probs_out);
+  // printf("OUT:\n");
   // for(int i=0; i < classes.size(); i++){
-  //   classes_out[i] = classes[i];
-  //   classes_out[i] = classes[i];
+  //   printf("%d : %f\n", classes[i], probs[i]);
+  // //   classes_out[i] = classes[i];
+  // //   classes_out[i] = classes[i];
   // }
+  // printf("END\n");
 }
 
 
 std::tuple<vector<int>,vector<float>> meParser::recognize_symbol(double *points, int n_strokes, int n_classes) {
-    Sample *M = new Sample(points, n_strokes);
+    Sample M (points, n_strokes);
     // M->compute_strokes_distances(M->RX, M->RY);
     list<list<int>> hyps;
     list<int> hyp;
@@ -537,20 +544,20 @@ std::tuple<vector<int>,vector<float>> meParser::recognize_symbol(double *points,
       hyp.push_back(i);
     }
     hyps.push_back(hyp);
-    M->print();
+    M.print();
     
     vector<int> classes;
-    vector<int> probs;
+    vector<float> probs;
 
-    std::tie(std::ignore, classes,probs) = sym_rec->classify_simple(M,NB,&hyps);
-    return make_tuple(classes, probs);
+    std::tie(std::ignore, classes,probs) = sym_rec->classify_simple(&M,NB,&hyps);
+    return std::make_tuple(classes, probs);
 }
 
 std::tuple<vector<int>,vector<int>,vector<float>> meParser::recognize_symbols(double *points, int n_strokes, int n_classes) {
-  Sample *M = new Sample(points, n_strokes);
-  M->compute_strokes_distances(M->RX, M->RY);
-  M->print();
-  return sym_rec->classify_simple(M,NB);
+  Sample M (points, n_strokes);
+  M.compute_strokes_distances(M.RX, M.RY);
+  M.print();
+  return sym_rec->classify_simple(&M,NB);
 
   // delete M;
 }
@@ -1283,7 +1290,9 @@ EMSCRIPTEN_BINDINGS(meparser) {
   emscripten::class_<meParser>("meParser")
     .constructor<>()
     // .function("recognize_symbol", &meParser::recognize_symbol, emscripten::allow_raw_pointers());
-    .function("recognize_symbol", &meParser::recognize_symbol_recast);
+    .function("recognize_symbol", &meParser::recognize_symbol_recast)
+    .function("getSymbolStrings", &meParser::getSymbolStrings);
+    emscripten::register_vector<std::string>("vectorString");
     // .function("incrementX", &MyClass::incrementX)
     // .property("x", &MyClass::getX, &MyClass::setX)
     // .class_function("getStringFromInstance", &MyClass::getStringFromInstance)

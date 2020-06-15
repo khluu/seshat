@@ -16,6 +16,7 @@
     along with SESHAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <cstdio>
+#include <ostream>
 #include <cstdlib>
 #include <unistd.h>
 #include <algorithm>
@@ -59,6 +60,9 @@ bool isRelation(char *str) {
 }
 
 Sample::Sample(double *points, int n_strokes){
+  RX = RY = 0;
+  outinkml = outdot = NULL;
+
   int offset = 0;
   for(int s=0; s<n_strokes; s++){
     double n_pts = points[offset];
@@ -347,23 +351,30 @@ void Sample::loadInkML(char *str) {
 #endif
 
 Sample::~Sample() {
+  // printf("HEY"); std::cout.flush();
   for(int i=0; i<nStrokes(); i++) {
+    // printf("THIS"); std::cout.flush();
     delete dataon[i];
-    delete[] stk_dis[i];
+    if(stk_dis != NULL) delete[] stk_dis[i];
   }
-  delete[] stk_dis;
-
+  if(stk_dis != NULL) delete[] stk_dis;
+  
+  // printf("SUX"); std::cout.flush();
   for(int y=0; y<Y; y++)
     delete[] dataoff[y];
   delete[] dataoff;
 
-
+  // printf("IT"); std::cout.flush();
   for(int i=0; i<Y; i++)
     delete[] pix_stk[i];
   delete[] pix_stk;
 
-  if( outinkml ) delete[] outinkml;
-  if( outdot ) delete[] outdot;
+  // printf("IS_LAME! %s\n", outinkml);  std::cout.flush();
+  if( outinkml != NULL) delete[] outinkml;
+  // printf("IS_LAME! %s \n",outdot);  std::cout.flush();
+  if( outdot != NULL ) delete[] outdot;
+
+  // printf("DONE!"); std::cout.flush();
 }
 
 int Sample::get(int x, int y) {
