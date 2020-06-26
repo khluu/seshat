@@ -1,6 +1,6 @@
 import c_BezierFit from '/libraries/js_glue.js';
 
-var breh = 0;
+var breh2;
 class BezierFit {
   constructor(max_stroke_length = 512, traces){
     this.promise = c_BezierFit().then((Module)=> {
@@ -30,6 +30,7 @@ class BezierFit {
 
 
       this.c_module = Module
+      this.breh2;
       this.fitCurve = (points,error=6.0) => {
         points = points.flat()
         var nPts = points.length / 2
@@ -44,14 +45,13 @@ class BezierFit {
         const nxt = () => Math.round(it.next().value[1])
         for (var i=0; i < n_curves; i++){
           out[i] = [nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(), nxt()]
-          //console.log("Bezier: ", i, out[i])
+          console.log("Bezier: ", i, out[i])
         }
         return out;
       }
-      breh = this.fitCurve(traces);
-      console.log(breh);
-      document.getElementById("demo").innerHTML = this.fitCurve(traces);
-      return this.fitCurve(traces);
+      document.getElementById("demo2").innerHTML = this.fitCurve(traces);
+      breh2 = this.fitCurve(traces);
+      return Promise.resolve(this.fitCurve(traces));
       this.groupStrokes = (strokes) => {
         strokes = Object.values(strokes)
         const len_ptr = Module._malloc(strokes.length*HEAP32.BYTES_PER_ELEMENT);
@@ -110,26 +110,6 @@ class BezierFit {
       //console.log(this.groupStrokes(this.fitCurve(traces)));
     });
   }
-  /*constructor(max_stroke_length = 512, traces) {
-    console.log("yea");
-    fitCurve(traces, 6.0);
-    function fitCurve (points = traces ,error=6.0) {
-      points = points.flat()
-      var nPts = points.length / 2
-      input_buffer.set(points.flat())
-      var n_curves = Module._c_FitCurve(input_ptr,nPts,error*error,output_ptr)
-      Module._c_ML_EncodeCurves(output_ptr,n_curves,ml_ptr);
-      // Module._c_InflectionPoints(input_ptr,nPts)
-      var out = []
-      var it = output_buffer.entries()
-      const nxt = () => Math.round(it.next().value[1])
-      for (var i=0; i < n_curves; i++){
-        out[i] = [nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt()]
-        // console.log("Bezier: ", i, out[i])
-      }
-      return out;
-    }
-  }*/
 }
 
 export default BezierFit;

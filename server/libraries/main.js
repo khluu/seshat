@@ -5,7 +5,7 @@ async function run(traces) {
     console.log('model loaded');
     //console.log(model.getWeights()[0].print());
 
-    /*var a = tf.tensor ([[[ 0.03709199  ,2.0334387,   0.18545994, -0.09037506 , 0.,
+    var a = tf.tensor ([[[ 0.03709199  ,2.0334387,   0.18545994, -0.09037506 , 0.,
    -0.09366621 , 0.       ,   0.06876937 , 1.        ],
   [ 0.22255193 , 1.9430637  , 1.3353115  ,-1.8978761,  -0.15064421,
    -0.02889192 , 1.0254734  , 2.0753584  , 0.        ],
@@ -20,13 +20,34 @@ async function run(traces) {
   [ 2.0029674  , 4.5639405  , 2.7818992 , -2.6660643  , 0.559263,
     0.1951211  , 1.4010531  , 1.3020507 ,  0.        ],
   [ 4.7848663 ,  1.8978761  ,-0.07418398 ,-0.13556258 ,-0.5007144,
-   -0.18660872  ,0.08416176  ,0.13198519, -1.        ]]], dtype=tf.float32);*/
-    var a = traces;
-    console.log(a[0]);
+   -0.18660872  ,0.08416176  ,0.13198519, -1.        ]]]);
+   console.log(a.shape)
+    //console.log(a[0]);
     var fit = new BezierFit(512, traces);
-    console.log(fit);
+    //console.log(fit);
     console.log('check');
-    alert(breh);
+    var data = document.getElementById("demo2");
+    console.log(data);
+    var res = await fit.promise.then();
+    var input=[];
+    input.push(res[0]);
+    console.log(input)
+    var i = 1;
+    for (i=1; i < res.length; i++) {
+      //console.log([res[i]]);
+      input.push(res[i]);
+    }
+    console.log(input)
+    var ten = tf.tensor([input]);
+    console.log(ten.shape)
+    var s = model.predict(ten);
+    console.log(s);
+    for(i=0; i < s.dataSync().length; i++) {
+      if (s.dataSync()[i] >= 0.01) {
+      document.getElementById("result").innerHTML += s.dataSync()[i];
+      document.getElementById("result").innerHTML += '\n';
+    }
+    }
     //console.log(fit.promise);
     //console.log(fit.promise());
     //b = model.predict(a);
@@ -37,6 +58,7 @@ async function run(traces) {
     //}
     //document.getElementById("demo").innerHTML = c.length;
 }
+
 document.getElementById("clickMe").onclick = predict;
 document.getElementById("runMe").onclick = run;
 
