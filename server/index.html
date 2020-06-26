@@ -60,13 +60,23 @@
           <button id="mode"> divide mode</button>
         </div>
       </div><!-- app -->
+      <form id="inkml_form" action>
+        <input id="clickMe" type="button" value="clickme" onclick="predict();" />
+        <input id="runMe" type="button" value="run it" onclick="run();" />
+        <input name="Files" type="file" id="predict" multiple=""/>
+    </form>
+      <p id="demo"></p>
     </div>
     <!--#main-->
   </div>
   <!--#main-wrapper-->
-
+  <script type ="text/javascript" src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
   <script type="text/javascript" src="algorithm/analyze.min.js"></script>
-  <script type="text/javascript">
+  <script type="module" src="libraries/bezier_fit.js"></script>
+  <script type="module" src="libraries/main.js"></script>
+  
+
+  <!-- <script type="text/javascript">
     var clear = document.getElementById('clear');
     var canvas = document.getElementById('drawing-canvas');
     var button = document.getElementById('button');
@@ -343,7 +353,13 @@
 
       var strokes = $canvas.sketchable('strokes');
       console.log("BBBBB")
-      console.log(strokes)
+      var a = '';
+      for(i = 0; i < strokes[0].length; i++) {
+        console.log(strokes[0][i])
+        a = a + strokes[0][i][0].toString() + ' ' + strokes[0][i][1].toString() + '\n'
+      }
+      document.getElementById("demo").innerHTML = a;
+      //console.log(strokes)
       // filter out time and pressure information, only leave coordinate pairs
       for (var i = 0; i < strokes.length; i++) {
         for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
@@ -381,7 +397,7 @@
         })
       }
     });
-  </script>
+  </script> -->
 </body>
 
 </html>
