@@ -1,6 +1,15 @@
 import BezierFit from './bezier_fit.js'
+var dict = ['!' ,'(' ,')', '+', ',', '-', '.', '/', '0', '1', '2', '3' ,'4', '5', '6', '7', '8', '9',
+'=' ,'A', 'B', 'C', 'E', 'F', 'G', 'H', 'I', 'L', 'M', 'N', 'P', 'R', 'S', 'T' ,'V', 'X',
+'Y', '[', '\\Delta' ,'\\alpha', '\\beta', '\\cos', '\\div', '\\exists',
+'\\forall', '\\gamma', '\\geq', '\\gt' ,'\\in', '\\infty', '\\int', '\\lambda',
+'\\ldots', '\\leq' ,'\\lim', '\\log' ,'\\lt', '\\mu', '\\neq', '\\phi', '\\pi',
+'\\pm', '\\prime' ,'\\rightarrow' ,'\\sigma', '\\sin', '\\sqrt', '\\sum',
+'\\tan', '\\theta' ,'\\times', '\\{', '\\}', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
+'z', '|']
 async function run(traces) {
-    console.log(traces);
+    console.log(traces.length);
     const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model.json');
     console.log('model loaded');
     //console.log(model.getWeights()[0].print());
@@ -20,15 +29,18 @@ async function run(traces) {
       input.push(res[i]);
     }
     console.log(input)
-    var ten = tf.tensor([input]);
-    console.log(ten.shape)
+    var ten = tf.tensor([input], DocumentType=tf.float32);
+    console.log(ten.shape);
+    console.log(ten.dataSync())
     var s = model.predict(ten);
     console.log(s);
     for(i=0; i < s.dataSync().length; i++) {
       if (s.dataSync()[i] >= 0.01) {
-      document.getElementById("result").innerHTML += s.dataSync()[i];
-      document.getElementById("result").innerHTML += '\n';
-    }
+        document.getElementById("result").innerHTML += s.dataSync()[i];
+        document.getElementById("result").innerHTML += " ";
+        document.getElementById("result").innerHTML += dict[i];
+        document.getElementById("result").innerHTML += "<br />";
+      }
     }
     //console.log(fit.promise);
     //console.log(fit.promise());

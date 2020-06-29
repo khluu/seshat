@@ -42,7 +42,7 @@ class BezierFit {
         //Module._c_InflectionPoints(input_ptr,nPts);
         var out = []
         var it = ml_buffer.entries()
-        const nxt = () => Math.round(it.next().value[1])
+        const nxt = () => (it.next().value[1])
         for (var i=0; i < n_curves; i++){
           out[i] = [nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(), nxt()]
           console.log("Bezier: ", i, out[i])
