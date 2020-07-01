@@ -10,7 +10,7 @@ var dict = ['!' ,'(' ,')', '+', ',', '-', '.', '/', '0', '1', '2', '3' ,'4', '5'
 'z', '|']
 async function run(traces) {
     console.log(traces.length);
-    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model.json');
+    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
     console.log('model loaded');
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
@@ -332,11 +332,12 @@ var clear = document.getElementById('clear');
 
       var strokes = $canvas.sketchable('strokes');
       //console.log("BBBBB")
-      var a = '';
+      var a = '[';
       for(i = 0; i < strokes[0].length; i++) {
         //console.log(strokes[0][i])
-        a = a + strokes[0][i][0].toString() + ' ' + strokes[0][i][1].toString() + '| \n'
+        a = a + '[' + strokes[0][i][0].toString() + ', ' + strokes[0][i][1].toString() + '], \n'
       }
+      a += ']';
       document.getElementById("demo").innerHTML = a;
       //init();
       //run();

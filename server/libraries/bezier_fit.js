@@ -33,9 +33,10 @@ class BezierFit {
       this.breh2;
       this.fitCurve = (points,error=6.0) => {
         points = points.flat()
-        var nPts = points.length / 2
+        var nPts = points.length
         input_buffer.set(points.flat())
-        var n_curves = Module._c_FitCurve(input_ptr,nPts,error*error,output_ptr)
+        var n_curves = Module._c_FitCurve(input_ptr,nPts,error*error,output_ptr);
+        console.log("#curves: ", n_curves);
         Module._c_ML_EncodeCurves(output_ptr,n_curves,ml_ptr)
         //Module._c_ML_EncodeCurves(output_ptr,n_curves,ml_ptr);
         //console.log(output_ptr);
