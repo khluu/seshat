@@ -9,35 +9,50 @@ var dict = ['!' ,'(' ,')', '+', ',', '-', '.', '/', '0', '1', '2', '3' ,'4', '5'
 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 'z', '|']
 async function run(traces) {
-    console.log(traces.length);
     const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
     console.log('model loaded');
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
+    var minx = 2400000000, miny = 2400000000;
+    var maxx = -2400000000, maxy = -2400000000;
+    for (var i = 0; i < traces.length; i++) {
+      for (var j = 0; j < traces[i].length; j++) {
+          minx = Math.min(minx, traces[i][j][0]);
+          miny = Math.min(miny, traces[i][j][1]);
+      }
+    }
+    console.log(minx, maxx, miny, maxy);
+    for (var i = 0; i < traces.length; i++) {
+      for (var j = 0; j < traces[i].length; j++) {
+          traces[i][j][0] -= minx;
+          traces[i][j][1] -= miny;
+          maxx = Math.max(maxx, traces[i][j][0]);
+          maxy = Math.max(maxy, traces[i][j][1]);
+      }
+    }
+    for (var i = 0; i < traces.length; i++) {
+      for (var j = 0; j < traces[i].length; j++) {
+          traces[i][j][0] /= Math.max(maxx, maxy) / 100;
+          traces[i][j][1] /= Math.max(maxx, maxy) / 100;
+      }
+    }
     var fit = new BezierFit(512, traces);
     //console.log(fit);
-    console.log('check');
     var data = document.getElementById("demo2");
-    console.log(data);
     var res = await fit.promise.then();
     var input=[];
     input.push(res[0]);
-    console.log(input)
     var i = 1;
     for (i=1; i < res.length; i++) {
       //console.log([res[i]]);
       input.push(res[i]);
     }
-    console.log(input)
     var ten = tf.tensor([input], DocumentType=tf.float32);
-    console.log(ten.shape);
-    console.log(ten.dataSync())
     var s = model.predict(ten);
-    console.log(s);
     for(i=0; i < s.dataSync().length; i++) {
-      if (s.dataSync()[i] >= 0.01) {
-        document.getElementById("result").innerHTML += s.dataSync()[i];
-        document.getElementById("result").innerHTML += " ";
+      if (s.dataSync()[i] >= 0.1) {
+        document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
+        document.getElementById("result").innerHTML += "% ";
         document.getElementById("result").innerHTML += dict[i];
         document.getElementById("result").innerHTML += "<br />";
       }
@@ -327,10 +342,11 @@ var clear = document.getElementById('clear');
         }
       });
     }
-
+    var start = 0;
     button.addEventListener('click', function () {
 
       var strokes = $canvas.sketchable('strokes');
+      console.log(strokes);
       //console.log("BBBBB")
       var a = '[';
       for(i = 0; i < strokes[0].length; i++) {
@@ -338,17 +354,18 @@ var clear = document.getElementById('clear');
         a = a + '[' + strokes[0][i][0].toString() + ', ' + strokes[0][i][1].toString() + '], \n'
       }
       a += ']';
-      document.getElementById("demo").innerHTML = a;
+      //document.getElementById("demo").innerHTML = a;
       //init();
       //run();
       // filter out time and pressure information, only leave coordinate pairs
-      for (var i = 0; i < strokes.length; i++) {
+      console.log('start at: ', start);
+      for (var i = start; i < strokes.length; i++) {
         for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
           strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
         }
       }
-      //console.log(strokes)
-      run(strokes);
+      run(strokes.slice(start));
+      start = strokes.length;
       bboxes = []
       if (not_divide_mode) {
         var scg = strokesToScg(strokes);

@@ -42,7 +42,7 @@ covered by the following copyright and permission notice:
 #include <iostream>
 #include <iomanip>
 #include <vector>
-#include <values.h>
+//#include <values.h>
 #include "online.h"
 
 #define MAXNUMHATS 200
