@@ -32,8 +32,8 @@ async function run(traces) {
     }
     for (var i = 0; i < traces.length; i++) {
       for (var j = 0; j < traces[i].length; j++) {
-          traces[i][j][0] /= Math.max(maxx, maxy) / 100;
-          traces[i][j][1] /= Math.max(maxx, maxy) / 100;
+          traces[i][j][0] /= Math.min(maxx, maxy) / 100;
+          traces[i][j][1] /= Math.min(maxx, maxy) / 100;
       }
     }
     var fit = new BezierFit(512, traces);
@@ -72,38 +72,36 @@ document.getElementById("clickMe").onclick = predict;
 document.getElementById("runMe").onclick = run;
 
 var clear = document.getElementById('clear');
-    var canvas = document.getElementById('drawing-canvas');
-    var button = document.getElementById('button');
-    var undo = document.getElementById('undo');
-    var redo = document.getElementById('redo');
-    var mode = document.getElementById('mode');
+var canvas = document.getElementById('drawing-canvas');
+var button = document.getElementById('button');
+var undo = document.getElementById('undo');
+var redo = document.getElementById('redo');
+var mode = document.getElementById('mode');
 
-    var render = document.getElementById('eq-render');
-    var latex = document.getElementById('eq-latex');
-    var tree = document.getElementById('parse-tree');
+var render = document.getElementById('eq-render');
+var latex = document.getElementById('eq-latex');
+var tree = document.getElementById('parse-tree');
 
-    var $canvas = $('#drawing-canvas').sketchable({
+var $canvas = $('#drawing-canvas').sketchable({
       graphics: {
         strokesStyle: "red"
       }
-    });
+});
 
-    var not_divide_mode = false;
-    var bboxes = [];
-    var hlines = [];
-    var vlines = [];
+var not_divide_mode = false;
+var bboxes = [];
+var hlines = [];
+var vlines = [];
 
-
-
-    undo.onclick = function (e) {
+undo.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('undo');
     }
-    redo.onclick = function (e) {
+redo.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('redo');
     }
-    clear.onclick = function (e) {
+clear.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('clear');
       console.clear();
@@ -112,7 +110,7 @@ var clear = document.getElementById('clear');
       hlines = [];
       vlines = [];
     }
-    mode.onclick = function (e) {
+mode.onclick = function (e) {
       if (not_divide_mode) {
         not_divide_mode = false;
         mode.innerHTML = "divide mode";
@@ -121,7 +119,7 @@ var clear = document.getElementById('clear');
         mode.innerHTML = "not divide mode";
       }
     }
-    function make_matrix(n,m){
+function make_matrix(n,m){
       var matrix = [];
       for(var i=0; i<n; i++) {
           matrix[i] = new Array(m);
@@ -130,13 +128,15 @@ var clear = document.getElementById('clear');
     }
 
 
-    function canvas_arrow(fromx, fromy, tox, toy,color,error_val) {
+function canvas_arrow(fromx, fromy, tox, toy,color,error_val) {
       context = canvas.getContext("2d")
       var headlen = 10; // length of head in pixels
       var dx = tox - fromx;
       var dy = toy - fromy;
       var angle = Math.atan2(dy, dx);
+      
       context.beginPath();
+      
       context.moveTo(fromx, fromy);
       context.lineTo(tox, toy);
       context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
@@ -147,9 +147,9 @@ var clear = document.getElementById('clear');
       context.strokeText(error_val.toFixed(2),tox,toy)
       context.stroke();
       context.strokeStyle = 'purple';
-    }
+}
 
-    function fill_first_order_errors(bboxes,matricies){
+function fill_first_order_errors(bboxes,matricies){
       for (var i = 0; i < bboxes.length; i++) {
         for (var j = 0; j < bboxes.length; j++) {
           if(i != j){
@@ -174,7 +174,7 @@ var clear = document.getElementById('clear');
             matricies["L"][i][j] = Math.max(lft_diff - 1.0, 0) + Math.abs(vert_sep) + Math.abs(Math.atan2(centerY_diff,centerX_diff))
 
 
-            //console.log(i,j)
+            console.log(i,j)
 
             //console.log(Math.atan2(centerX_diff,centerY_diff).toFixed(2))
             //console.log(Math.atan2(-centerX_diff,-centerY_diff).toFixed(2))
@@ -184,7 +184,7 @@ var clear = document.getElementById('clear');
             //console.log("left_error",matricies["L"][i][j])
             //console.log("above_error",matricies["A"][i][j])
             //console.log("below_error",matricies["B"][i][j])
-          }else{
+          } else{
             matricies["A"][i][j] = 10000
             matricies["B"][i][j] = 10000
             matricies["L"][i][j] = 10000
@@ -199,9 +199,9 @@ var clear = document.getElementById('clear');
       // console.log("vert_sep",vert_sep)
       // console.log("horz_sep",horz_sep)
 
-    }
+}
 
-    function danny_organize(bboxes){
+function danny_organize(bboxes){
       //console.log("MOOOOO")
       errors = {};
       errors["A"] = make_matrix(bboxes.length,bboxes.length);
@@ -265,7 +265,7 @@ var clear = document.getElementById('clear');
           b2cy = bboxes[minL_j]["bbox"].Y + .5*bboxes[minL_j]["bbox"].h
           canvas_arrow(b1cx,b1cy-15,b2cx,b2cy-15,'orange',eL_i)
         }
-
+        console.log(Data.now());
 
             // }
           // }
@@ -346,6 +346,7 @@ var clear = document.getElementById('clear');
     button.addEventListener('click', function () {
 
       var strokes = $canvas.sketchable('strokes');
+      console.log(Date.now());
       console.log(strokes);
       //console.log("BBBBB")
       var a = '[';
@@ -358,7 +359,6 @@ var clear = document.getElementById('clear');
       //init();
       //run();
       // filter out time and pressure information, only leave coordinate pairs
-      console.log('start at: ', start);
       for (var i = start; i < strokes.length; i++) {
         for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
           strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
@@ -378,8 +378,8 @@ var clear = document.getElementById('clear');
         //console.log('strokes groups (in indices): ');
         //console.log(JSON.stringify(strokes_groups));
 
-        reqs = []
-        bboxes = []
+        var reqs = []
+        var bboxes = []
         for (var j = 0; j < strokes_groups.length; j++) {
           var strokes_gj = []; // strokes group j
           for (var box of strokes_groups[j]) {
@@ -390,8 +390,8 @@ var clear = document.getElementById('clear');
         }
         console.log(bboxes)
         $.when(...reqs).done(()=>{
-          console.log("MOOOOOOOO")
-          console.log(bboxes)
+          //console.log("MOOOOOOOO")
+          //console.log(bboxes)
           structure_relative(bboxes)
         })
       }

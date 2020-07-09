@@ -44,14 +44,14 @@ class BezierFit {
         var out = []
         var it = ml_buffer.entries()
         const nxt = () => (it.next().value[1])
-        for (var i=0; i < n_curves; i++){
+        for (var i = 0; i < n_curves; i++){
           out[i] = [nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(),nxt(), nxt()]
           //console.log("Bezier: ", i, out[i])
         }
         return out;
       }
       document.getElementById("demo2").innerHTML = this.fitCurve(traces);
-      breh2 = this.fitCurve(traces);
+      
       return Promise.resolve(this.fitCurve(traces));
       this.groupStrokes = (strokes) => {
         strokes = Object.values(strokes)
@@ -87,8 +87,8 @@ class BezierFit {
           }
           out.push(grp);
         }
-        // console.log("OUT", out)
-
+        //console.log("OUT", out)
+        
         Module._free(stroke_ptr);
         Module._free(len_ptr);
         Module._free(out_ptr);
