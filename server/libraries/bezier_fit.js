@@ -50,7 +50,7 @@ class BezierFit {
         }
         return out;
       }
-      document.getElementById("demo2").innerHTML = this.fitCurve(traces);
+      //document.getElementById("demo2").innerHTML = this.fitCurve(traces);
       
       return Promise.resolve(this.fitCurve(traces));
       this.groupStrokes = (strokes) => {
