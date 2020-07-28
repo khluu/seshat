@@ -8,11 +8,12 @@ var dict = ['!' ,'(' ,')', '+', ',', '-', '.', '/', '0', '1', '2', '3' ,'4', '5'
 '\\tan', '\\theta' ,'\\times', '\\{', '\\}', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 'z', '|']
+var output = '';
 async function run(traces) {
-    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
-    console.log('model loaded');
+    //console.log('model loaded');
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
+    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
     var minx = 2400000000, miny = 2400000000;
     var maxx = -2400000000, maxy = -2400000000;
     for (var i = 0; i < traces.length; i++) {
@@ -32,13 +33,12 @@ async function run(traces) {
     }
     for (var i = 0; i < traces.length; i++) {
       for (var j = 0; j < traces[i].length; j++) {
-          traces[i][j][0] /= Math.max(maxx, maxy) / 100;
-          traces[i][j][1] /= Math.max(maxx, maxy) / 100;
+          traces[i][j][0] /= Math.min(maxx, maxy) / 100;
+          traces[i][j][1] /= Math.min(maxx, maxy) / 100;
       }
     }
     var fit = new BezierFit(512, traces);
     //console.log(fit);
-    var data = document.getElementById("demo2");
     var res = await fit.promise.then();
     var input=[];
     input.push(res[0]);
@@ -49,14 +49,25 @@ async function run(traces) {
     }
     var ten = tf.tensor([input], DocumentType=tf.float32);
     var s = model.predict(ten);
+    
+    var chance = -1;
+    var index = -1;
     for(i=0; i < s.dataSync().length; i++) {
-      if (s.dataSync()[i] >= 0.1) {
-        document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
-        document.getElementById("result").innerHTML += "% ";
-        document.getElementById("result").innerHTML += dict[i];
-        document.getElementById("result").innerHTML += "<br />";
+      if (s.dataSync()[i] >= chance) {
+        index = i;
+        chance = s.dataSync()[i];
+        //document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
+        //document.getElementById("result").innerHTML += "% ";
+        //document.getElementById("result").innerHTML += dict[i];
+        //document.getElementById("result").innerHTML += " ";
       }
     }
+    if (dict[index] != "undefined" && dict[index] != '.') { 
+      console.log(dict[index]);
+      output += dict[index] + " ";
+      document.getElementById("result").innerHTML += dict[index] + " ";
+    }
+    
     //console.log(fit.promise);
     //console.log(fit.promise());
     //b = model.predict(a);
@@ -72,38 +83,36 @@ document.getElementById("clickMe").onclick = predict;
 document.getElementById("runMe").onclick = run;
 
 var clear = document.getElementById('clear');
-    var canvas = document.getElementById('drawing-canvas');
-    var button = document.getElementById('button');
-    var undo = document.getElementById('undo');
-    var redo = document.getElementById('redo');
-    var mode = document.getElementById('mode');
+var canvas = document.getElementById('drawing-canvas');
+var button = document.getElementById('button');
+var undo = document.getElementById('undo');
+var redo = document.getElementById('redo');
+var mode = document.getElementById('mode');
 
-    var render = document.getElementById('eq-render');
-    var latex = document.getElementById('eq-latex');
-    var tree = document.getElementById('parse-tree');
+var render = document.getElementById('eq-render');
+var latex = document.getElementById('eq-latex');
+var tree = document.getElementById('parse-tree');
 
-    var $canvas = $('#drawing-canvas').sketchable({
+var $canvas = $('#drawing-canvas').sketchable({
       graphics: {
         strokesStyle: "red"
       }
-    });
+});
 
-    var not_divide_mode = false;
-    var bboxes = [];
-    var hlines = [];
-    var vlines = [];
+var not_divide_mode = false;
+var bboxes = [];
+var hlines = [];
+var vlines = [];
 
-
-
-    undo.onclick = function (e) {
+undo.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('undo');
     }
-    redo.onclick = function (e) {
+redo.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('redo');
     }
-    clear.onclick = function (e) {
+clear.onclick = function (e) {
       e.preventDefault();
       $canvas.sketchable('clear');
       console.clear();
@@ -112,7 +121,7 @@ var clear = document.getElementById('clear');
       hlines = [];
       vlines = [];
     }
-    mode.onclick = function (e) {
+mode.onclick = function (e) {
       if (not_divide_mode) {
         not_divide_mode = false;
         mode.innerHTML = "divide mode";
@@ -121,7 +130,7 @@ var clear = document.getElementById('clear');
         mode.innerHTML = "not divide mode";
       }
     }
-    function make_matrix(n,m){
+function make_matrix(n,m){
       var matrix = [];
       for(var i=0; i<n; i++) {
           matrix[i] = new Array(m);
@@ -130,13 +139,16 @@ var clear = document.getElementById('clear');
     }
 
 
-    function canvas_arrow(fromx, fromy, tox, toy,color,error_val) {
+function canvas_arrow(fromx, fromy, tox, toy,color,error_val) {
       context = canvas.getContext("2d")
+      console.log("YO")
       var headlen = 10; // length of head in pixels
       var dx = tox - fromx;
       var dy = toy - fromy;
       var angle = Math.atan2(dy, dx);
+      
       context.beginPath();
+      console.log("YO")
       context.moveTo(fromx, fromy);
       context.lineTo(tox, toy);
       context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
@@ -147,9 +159,9 @@ var clear = document.getElementById('clear');
       context.strokeText(error_val.toFixed(2),tox,toy)
       context.stroke();
       context.strokeStyle = 'purple';
-    }
+}
 
-    function fill_first_order_errors(bboxes,matricies){
+function fill_first_order_errors(bboxes,matricies){
       for (var i = 0; i < bboxes.length; i++) {
         for (var j = 0; j < bboxes.length; j++) {
           if(i != j){
@@ -174,7 +186,7 @@ var clear = document.getElementById('clear');
             matricies["L"][i][j] = Math.max(lft_diff - 1.0, 0) + Math.abs(vert_sep) + Math.abs(Math.atan2(centerY_diff,centerX_diff))
 
 
-            //console.log(i,j)
+            console.log(i,j)
 
             //console.log(Math.atan2(centerX_diff,centerY_diff).toFixed(2))
             //console.log(Math.atan2(-centerX_diff,-centerY_diff).toFixed(2))
@@ -184,7 +196,7 @@ var clear = document.getElementById('clear');
             //console.log("left_error",matricies["L"][i][j])
             //console.log("above_error",matricies["A"][i][j])
             //console.log("below_error",matricies["B"][i][j])
-          }else{
+          } else{
             matricies["A"][i][j] = 10000
             matricies["B"][i][j] = 10000
             matricies["L"][i][j] = 10000
@@ -199,9 +211,9 @@ var clear = document.getElementById('clear');
       // console.log("vert_sep",vert_sep)
       // console.log("horz_sep",horz_sep)
 
-    }
+}
 
-    function danny_organize(bboxes){
+function danny_organize(bboxes){
       //console.log("MOOOOO")
       errors = {};
       errors["A"] = make_matrix(bboxes.length,bboxes.length);
@@ -244,7 +256,7 @@ var clear = document.getElementById('clear');
             // if(arr[min_index] < 1.5){
         b1cx = bboxes[i]["bbox"].X + .5*bboxes[i]["bbox"].w
         b1cy = bboxes[i]["bbox"].Y + .5*bboxes[i]["bbox"].h
-
+        console.log("check")
         if(minA_j != null){
           b2cx = bboxes[minA_j]["bbox"].X + .5*bboxes[minA_j]["bbox"].w
           b2cy = bboxes[minA_j]["bbox"].Y + .5*bboxes[minA_j]["bbox"].h
@@ -265,7 +277,7 @@ var clear = document.getElementById('clear');
           b2cy = bboxes[minL_j]["bbox"].Y + .5*bboxes[minL_j]["bbox"].h
           canvas_arrow(b1cx,b1cy-15,b2cx,b2cy-15,'orange',eL_i)
         }
-
+        console.log(Data.now());
 
             // }
           // }
@@ -310,7 +322,7 @@ var clear = document.getElementById('clear');
       return $.ajax({
         url: '/ajax',
         async: true,
-        type: 'POST',
+        type: 'GET',
         data: JSON.stringify(scg),
         success: function (data) {
           console.log("\nRequest resolved!");
@@ -343,9 +355,41 @@ var clear = document.getElementById('clear');
       });
     }
     var start = 0;
-    button.addEventListener('click', function () {
-
+    var writing = false;
+    var startGap = 0;
+    var trackingGap = false;
+    var gap = 0;
+    var startTime; 
+    var time = [];
+    run([]);
+    canvas.onmousedown = function(e) {
+      writing = true;
+      startTime = Date.now();
+      gap = Date.now() - startGap;
+      if (gap >= 750 && trackingGap) {
+        predict();
+      }
+      trackingGap = true;
+      console.log("Gap: ", Date.now() - startGap);
+    }
+    canvas.onmouseup = function(e) {
+      if (writing) {
+        
+        writing = false;
+        console.log(Date.now() - startTime);
+        time.push(Date.now() - startTime);
+        startGap = Date.now();
+        this.click;
+      }
+      
+    }
+    button.addEventListener("click", function() {
+      predict();
+      document.getElementById("result").innerHTML = output;
+    });
+    function predict() {
       var strokes = $canvas.sketchable('strokes');
+      console.log(Date.now());
       console.log(strokes);
       console.log(Data.now);
       //console.log("BBBBB")
@@ -359,7 +403,6 @@ var clear = document.getElementById('clear');
       //init();
       //run();
       // filter out time and pressure information, only leave coordinate pairs
-      console.log('start at: ', start);
       for (var i = start; i < strokes.length; i++) {
         for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
           strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
@@ -370,7 +413,7 @@ var clear = document.getElementById('clear');
       bboxes = []
       if (not_divide_mode) {
         var scg = strokesToScg(strokes);
-        sendMsg(scg,bboxes);
+        //sendMsg(scg,bboxes);
       } else {
         var bboxes = get_bboxes_from_strokes(strokes);
         var strokes_groups = [];
@@ -379,7 +422,7 @@ var clear = document.getElementById('clear');
         //console.log('strokes groups (in indices): ');
         //console.log(JSON.stringify(strokes_groups));
 
-        reqs = []
+        var reqs = []
         bboxes = []
         for (var j = 0; j < strokes_groups.length; j++) {
           var strokes_gj = []; // strokes group j
@@ -387,13 +430,13 @@ var clear = document.getElementById('clear');
             strokes_gj.push(strokes[box]);
           }
           var scg_gj = strokesToScg(strokes_gj);
-          reqs.push(sendMsg(scg_gj,bboxes));
+          //reqs.push(sendMsg(scg_gj,bboxes));
         }
         console.log(bboxes)
         $.when(...reqs).done(()=>{
-          console.log("MOOOOOOOO")
-          console.log(bboxes)
-          structure_relative(bboxes)
+          //console.log("MOOOOOOOO")
+          //console.log(bboxes)
+          //structure_relative(bboxes)
         })
       }
-    });
+    };
