@@ -13,7 +13,7 @@ async function run(traces) {
     //console.log('model loaded');
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
-    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
+    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model.json');
     var minx = 2400000000, miny = 2400000000;
     var maxx = -2400000000, maxy = -2400000000;
     for (var i = 0; i < traces.length; i++) {
@@ -52,20 +52,14 @@ async function run(traces) {
     
     var chance = -1;
     var index = -1;
-    for(i=0; i < s.dataSync().length; i++) {
+    for(i = 0; i < s.dataSync().length; i++) {
       if (s.dataSync()[i] >= chance) {
-        index = i;
         chance = s.dataSync()[i];
-        //document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
-        //document.getElementById("result").innerHTML += "% ";
-        //document.getElementById("result").innerHTML += dict[i];
-        //document.getElementById("result").innerHTML += " ";
+        document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
+        document.getElementById("result").innerHTML += "% ";
+        document.getElementById("result").innerHTML += dict[i];
+        document.getElementById("result").innerHTML += " ";
       }
-    }
-    if (dict[index] != "undefined" && dict[index] != '.') { 
-      console.log(dict[index]);
-      output += dict[index] + " ";
-      document.getElementById("result").innerHTML += dict[index] + " ";
     }
     
     //console.log(fit.promise);
@@ -385,20 +379,15 @@ function danny_organize(bboxes){
     }
     button.addEventListener("click", function() {
       predict();
-      document.getElementById("result").innerHTML = output;
+      //document.getElementById("result").innerHTML = output;
     });
     function predict() {
       var strokes = $canvas.sketchable('strokes');
       console.log(Date.now());
-      console.log(strokes);
-      console.log(Data.now);
-      //console.log("BBBBB")
-      var a = '[';
       for(i = 0; i < strokes[0].length; i++) {
         //console.log(strokes[0][i])
         a = a + '[' + strokes[0][i][0].toString() + ', ' + strokes[0][i][1].toString() + '], \n'
       }
-      a += ']';
       //document.getElementById("demo").innerHTML = a;
       //init();
       //run();
