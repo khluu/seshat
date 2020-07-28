@@ -14,7 +14,10 @@ async function run(traces) {
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
 <<<<<<< HEAD
+<<<<<<< HEAD
     const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model.json');
+=======
+>>>>>>> parent of 451e403... update live tracking
 =======
 >>>>>>> parent of 451e403... update live tracking
     var minx = 2400000000, miny = 2400000000;
@@ -54,6 +57,7 @@ async function run(traces) {
     var ten = tf.tensor([input], DocumentType=tf.float32);
     var s = model.predict(ten);
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     var chance = -1;
     var index = -1;
@@ -67,6 +71,16 @@ async function run(traces) {
       }
     }
     
+=======
+    for(i=0; i < s.dataSync().length; i++) {
+      if (s.dataSync()[i] >= 0.1) {
+        document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
+        document.getElementById("result").innerHTML += "% ";
+        document.getElementById("result").innerHTML += dict[i];
+        document.getElementById("result").innerHTML += "<br />";
+      }
+    }
+>>>>>>> parent of 451e403... update live tracking
 =======
     for(i=0; i < s.dataSync().length; i++) {
       if (s.dataSync()[i] >= 0.1) {
@@ -364,6 +378,7 @@ function danny_organize(bboxes){
     }
     var start = 0;
 <<<<<<< HEAD
+<<<<<<< HEAD
     var writing = false;
     var startGap = 0;
     var trackingGap = false;
@@ -397,6 +412,10 @@ function danny_organize(bboxes){
       //document.getElementById("result").innerHTML = output;
     });
     function predict() {
+=======
+    button.addEventListener('click', function () {
+
+>>>>>>> parent of 451e403... update live tracking
 =======
     button.addEventListener('click', function () {
 
