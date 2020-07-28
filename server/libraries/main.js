@@ -8,12 +8,15 @@ var dict = ['!' ,'(' ,')', '+', ',', '-', '.', '/', '0', '1', '2', '3' ,'4', '5'
 '\\tan', '\\theta' ,'\\times', '\\{', '\\}', ']', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
 'z', '|']
-var output = '';
 async function run(traces) {
-    //console.log('model loaded');
+    const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model-4.json');
+    console.log('model loaded');
     //console.log(model.getWeights()[0].print());
     //console.log(a[0]);
+<<<<<<< HEAD
     const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khluu/smartsheet/master/tfjs/model.json');
+=======
+>>>>>>> parent of 451e403... update live tracking
     var minx = 2400000000, miny = 2400000000;
     var maxx = -2400000000, maxy = -2400000000;
     for (var i = 0; i < traces.length; i++) {
@@ -39,6 +42,7 @@ async function run(traces) {
     }
     var fit = new BezierFit(512, traces);
     //console.log(fit);
+    var data = document.getElementById("demo2");
     var res = await fit.promise.then();
     var input=[];
     input.push(res[0]);
@@ -49,6 +53,7 @@ async function run(traces) {
     }
     var ten = tf.tensor([input], DocumentType=tf.float32);
     var s = model.predict(ten);
+<<<<<<< HEAD
     
     var chance = -1;
     var index = -1;
@@ -62,6 +67,16 @@ async function run(traces) {
       }
     }
     
+=======
+    for(i=0; i < s.dataSync().length; i++) {
+      if (s.dataSync()[i] >= 0.1) {
+        document.getElementById("result").innerHTML += s.dataSync()[i].toFixed(2) * 100;
+        document.getElementById("result").innerHTML += "% ";
+        document.getElementById("result").innerHTML += dict[i];
+        document.getElementById("result").innerHTML += "<br />";
+      }
+    }
+>>>>>>> parent of 451e403... update live tracking
     //console.log(fit.promise);
     //console.log(fit.promise());
     //b = model.predict(a);
@@ -135,14 +150,13 @@ function make_matrix(n,m){
 
 function canvas_arrow(fromx, fromy, tox, toy,color,error_val) {
       context = canvas.getContext("2d")
-      console.log("YO")
       var headlen = 10; // length of head in pixels
       var dx = tox - fromx;
       var dy = toy - fromy;
       var angle = Math.atan2(dy, dx);
       
       context.beginPath();
-      console.log("YO")
+      
       context.moveTo(fromx, fromy);
       context.lineTo(tox, toy);
       context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
@@ -250,7 +264,7 @@ function danny_organize(bboxes){
             // if(arr[min_index] < 1.5){
         b1cx = bboxes[i]["bbox"].X + .5*bboxes[i]["bbox"].w
         b1cy = bboxes[i]["bbox"].Y + .5*bboxes[i]["bbox"].h
-        console.log("check")
+
         if(minA_j != null){
           b2cx = bboxes[minA_j]["bbox"].X + .5*bboxes[minA_j]["bbox"].w
           b2cy = bboxes[minA_j]["bbox"].Y + .5*bboxes[minA_j]["bbox"].h
@@ -316,7 +330,7 @@ function danny_organize(bboxes){
       return $.ajax({
         url: '/ajax',
         async: true,
-        type: 'GET',
+        type: 'POST',
         data: JSON.stringify(scg),
         success: function (data) {
           console.log("\nRequest resolved!");
@@ -349,6 +363,7 @@ function danny_organize(bboxes){
       });
     }
     var start = 0;
+<<<<<<< HEAD
     var writing = false;
     var startGap = 0;
     var trackingGap = false;
@@ -382,6 +397,10 @@ function danny_organize(bboxes){
       //document.getElementById("result").innerHTML = output;
     });
     function predict() {
+=======
+    button.addEventListener('click', function () {
+
+>>>>>>> parent of 451e403... update live tracking
       var strokes = $canvas.sketchable('strokes');
       console.log(Date.now());
       for(i = 0; i < strokes[0].length; i++) {
@@ -402,7 +421,7 @@ function danny_organize(bboxes){
       bboxes = []
       if (not_divide_mode) {
         var scg = strokesToScg(strokes);
-        //sendMsg(scg,bboxes);
+        sendMsg(scg,bboxes);
       } else {
         var bboxes = get_bboxes_from_strokes(strokes);
         var strokes_groups = [];
@@ -412,20 +431,20 @@ function danny_organize(bboxes){
         //console.log(JSON.stringify(strokes_groups));
 
         var reqs = []
-        bboxes = []
+        var bboxes = []
         for (var j = 0; j < strokes_groups.length; j++) {
           var strokes_gj = []; // strokes group j
           for (var box of strokes_groups[j]) {
             strokes_gj.push(strokes[box]);
           }
           var scg_gj = strokesToScg(strokes_gj);
-          //reqs.push(sendMsg(scg_gj,bboxes));
+          reqs.push(sendMsg(scg_gj,bboxes));
         }
         console.log(bboxes)
         $.when(...reqs).done(()=>{
           //console.log("MOOOOOOOO")
           //console.log(bboxes)
-          //structure_relative(bboxes)
+          structure_relative(bboxes)
         })
       }
-    };
+    });
