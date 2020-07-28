@@ -347,6 +347,7 @@ var clear = document.getElementById('clear');
 
       var strokes = $canvas.sketchable('strokes');
       console.log(strokes);
+      console.log(Data.now);
       //console.log("BBBBB")
       var a = '[';
       for(i = 0; i < strokes[0].length; i++) {
